@@ -192,6 +192,7 @@ def microSMSQueue(self, *args, **kwargs):
         self.retry()
 """
 
+
 @shared_task(bind=True, default_retry_delay=30, max_retries=5)
 def microSMSQueue(self, *args, **kwargs):
     update_queue = f"update{random.randint(1, 3)}"
@@ -255,6 +256,7 @@ def microSMSQueue(self, *args, **kwargs):
             pass
         self.retry()
 
+
 @shared_task(bind=True, default_retry_delay=30, max_retries=5)
 def sendSMSQueue(self, *args, **kwargs):
     try:
@@ -279,7 +281,6 @@ def sendSMSQueue(self, *args, **kwargs):
         return f"Queued to Micro Successfully. Micro: {micro_queue} | SMS ID: {kwargs.get('sms_id')}"
     except Exception as e:
         self.retry()
-
 
 
 @shared_task

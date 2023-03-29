@@ -897,6 +897,10 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
     sms_body = unquote_plus(sms_body)
     sender_id = req_sender_id
 
+    cli = request['cli']
+    transaction_type = request.data['transaction_type']
+    message_type = request.data['message_type']
+
     if sms_length > 0 and sms_count > 0 and valid > 0:
         """
         Checking is the sms content has blocked keyword
@@ -977,7 +981,11 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                         "sms_type": sms_instance.sms_type,
                         "sms_body": sms_instance.sms_body,
                         "receiver": sms_instance.receiver,
-                        "operator_name": sms_instance.operator_name
+                        "operator_name": sms_instance.operator_name,
+                        # 29-03-2023
+                        "cli": cli,
+                        "transaction_type": transaction_type,
+                        "message_type": message_type,
                     }
 
                     if schedule_time is None:
@@ -1350,8 +1358,8 @@ def getDashboardGraph(request):
 
 # 29-03-2023
 @api_view(['GET'])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
+# @authentication_classes([JWTAuthentication])
+# @permission_classes([IsAuthenticated])
 def checkAPICall(request):
     """
     Return if api call is ok
