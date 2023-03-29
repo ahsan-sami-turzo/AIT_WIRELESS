@@ -132,6 +132,7 @@ def updateSMSStatus(self, *args, **kwargs):
         self.retry()
 
 
+"""
 @shared_task(bind=True, default_retry_delay=30, max_retries=5)
 def microSMSQueue(self, *args, **kwargs):
     update_queue = f"update{random.randint(1, 3)}"
@@ -189,43 +190,12 @@ def microSMSQueue(self, *args, **kwargs):
         except Exception:
             pass
         self.retry()
-
-
-@shared_task(bind=True, default_retry_delay=30, max_retries=5)
-def sendSMSQueue(self, *args, **kwargs):
-    try:
-        micro_general_queue = f"micro{random.randint(1, 6)}"
-        # micro_general_queue = f"micro1"
-        micro_priority_queue = f"micro{random.randint(7, 10)}"
-        SMSQueueHandler.objects.create(
-            sms_id=kwargs.get('sms_id'),
-            user_id=kwargs.get('user_id'),
-            username=kwargs.get('username'),
-            sms_count=kwargs.get('sms_count'),
-            queue=kwargs.get('queue_name'),
-            operator_logo=f"/static/operator/{kwargs.get('operator_name')}.png"
-        )
-
-        if "general" in kwargs.get('queue_name'):
-            micro_queue = micro_general_queue
-        else:
-            micro_queue = micro_priority_queue
-
-        app.send_task("nf_core.tasks.microSMSQueue", queue=micro_queue, kwargs=kwargs)
-        return f"Queued to Micro Successfully. Micro: {micro_queue} | SMS ID: {kwargs.get('sms_id')}"
-    except Exception as e:
-        self.retry()
-
+"""
 
 @shared_task(bind=True, default_retry_delay=30, max_retries=5)
-def microSMSQueueInfozillion(self, *args, **kwargs):
+def microSMSQueue(self, *args, **kwargs):
     update_queue = f"update{random.randint(1, 3)}"
     try:
-        sms_body = quote_plus(kwargs.get('sms_body'))
-        sms_type = kwargs.get('sms_type')
-        sender_id = kwargs.get('sender_id')
-        receiver = kwargs.get('receiver')
-
         username = settings.INFOZILLION_USERNAME
         password = settings.INFOZILLION_PASSWORD
         apiKey = settings.INFOZILLION_APIKEY
@@ -241,7 +211,7 @@ def microSMSQueueInfozillion(self, *args, **kwargs):
 
         payload = f'username={username}&password={password}&apiKey={apiKey}&billMsisdn={billMsisdn}&cli={cli}&transactionType={transactionType}&messageType={messageType}&msisdnList={msisdnList}&message={message}'
         headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/json'
         }
 
         response = requests.request("POST", url, headers=headers, data=payload)
@@ -250,7 +220,7 @@ def microSMSQueueInfozillion(self, *args, **kwargs):
         ########### End call the operator API here ###########
 
         if int(response['Status']) >= 0:
-            shoot_id = response['MessageId']
+            shoot_id = response['serverTxnId']
             update_payload = {
                 "sms_id": kwargs.get('sms_id'),
                 "user_id": kwargs.get('user_id'),
@@ -284,6 +254,32 @@ def microSMSQueueInfozillion(self, *args, **kwargs):
         except Exception:
             pass
         self.retry()
+
+@shared_task(bind=True, default_retry_delay=30, max_retries=5)
+def sendSMSQueue(self, *args, **kwargs):
+    try:
+        micro_general_queue = f"micro{random.randint(1, 6)}"
+        # micro_general_queue = f"micro1"
+        micro_priority_queue = f"micro{random.randint(7, 10)}"
+        SMSQueueHandler.objects.create(
+            sms_id=kwargs.get('sms_id'),
+            user_id=kwargs.get('user_id'),
+            username=kwargs.get('username'),
+            sms_count=kwargs.get('sms_count'),
+            queue=kwargs.get('queue_name'),
+            operator_logo=f"/static/operator/{kwargs.get('operator_name')}.png"
+        )
+
+        if "general" in kwargs.get('queue_name'):
+            micro_queue = micro_general_queue
+        else:
+            micro_queue = micro_priority_queue
+
+        app.send_task("nf_core.tasks.microSMSQueue", queue=micro_queue, kwargs=kwargs)
+        return f"Queued to Micro Successfully. Micro: {micro_queue} | SMS ID: {kwargs.get('sms_id')}"
+    except Exception as e:
+        self.retry()
+
 
 
 @shared_task

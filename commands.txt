@@ -5,3 +5,9 @@
 5. python manage.py collectstatic
 6. python manage.py createsuperuser
 7. python manage.py runserver
+
+
+== live deploy == 
+1. sh deploy.sh
+2. docker ps // list of running containers 
+2. docker start/stop/restart <container-id> || docker restart <container_id> || docker exec -it <container_id> bash 

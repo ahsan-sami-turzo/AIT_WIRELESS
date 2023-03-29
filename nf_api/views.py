@@ -1346,3 +1346,18 @@ def getDashboardGraph(request):
             }]
         }
     })
+
+
+# 29-03-2023
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def checkAPICall(request):
+    """
+    Return if api call is ok
+    """
+    return Response({
+        'code': status.HTTP_200_OK,
+        'message': 'API call received successfully!'
+    })
+

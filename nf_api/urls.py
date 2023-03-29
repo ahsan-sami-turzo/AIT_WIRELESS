@@ -43,6 +43,8 @@ urlpatterns = [
     path('v1/client/get-account-balance', getAccountBalance),
 
     # $api_url = "https://api.ambalawireless.com/api/v1/client/sms/send-sms";
+    path('v1/client/sms/check', checkAPICall),
+
     path('v1/client/sms/send-sms', sendSMS),
     path('v1/client/sms/schedule-sms', scheduleSMS),
     path('v1/client/sms/send-group-sms', sendGroupSMS),
