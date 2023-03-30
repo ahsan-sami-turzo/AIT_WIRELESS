@@ -904,7 +904,6 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
     sender_id = req_sender_id
     cli = request.data['cli']
     transaction_type = request.data['transaction_type']
-    message_type = request.data['message_type']
 
     if sms_length > 0 and sms_count > 0 and valid > 0:
         """
@@ -991,41 +990,43 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                         # 29-03-2023
                         # for Infozillion API
                         "cli": cli,
-                        "transaction_type": transaction_type,
-                        "message_type": message_type,
+                        "transaction_type": transaction_type
                     }
-                    # return {
-                    #     "schedule_time": schedule_time,
-                    #     "DEBUG": settings.DEBUG,
-                    #     "param": param
-                    # }
 
                     if schedule_time is None:
                         # return {"msg": "schedule time is none condition"}
                         if not settings.DEBUG:
                             # app.send_task("nf_core.tasks.sendSMSQueue", queue=queue_name, kwargs=param)
 
-                            username = settings.INFOZILLION_USERNAME
-                            password = settings.INFOZILLION_PASSWORD
-                            apiKey = settings.INFOZILLION_APIKEY
-                            billMsisdn = param.get('sender_id')
-                            cli = param.get('cli')
-                            transactionType = param.get('transaction_type')
-                            messageType = param.get('message_type')
-                            msisdnList = param.get('receiver')
-                            message = quote_plus(param.get('sms_body'))
+                            # username = settings.INFOZILLION_USERNAME
+                            # password = settings.INFOZILLION_PASSWORD
+                            # apiKey = settings.INFOZILLION_APIKEY
+                            # billMsisdn = param.get('sender_id')
+                            # cli = param.get('cli')
+                            # transactionType = param.get('transaction_type')
+                            # msisdnList = param.get('receiver')
+                            # message = quote_plus(param.get('sms_body'))
 
                             ########### Start call the operator API here ###########
-                            # url = settings.INFOZILLION_URL
-                            url = "https://a2papiintl.mnpspbd.com/a2p-sms/api/v1/send-sms"
-                            # payload = f'username={username}&password={password}&apiKey={apiKey}&billMsisdn={billMsisdn}&cli={cli}&transactionType={transactionType}&messageType={messageType}&msisdnList={msisdnList}&message={message}'
-                            payload = f'Username={settings.MOBIREACH_USERNAME}&Password={settings.MOBIREACH_PASSWORD}&From={sender_id}&To={msisdnList}&Message={sms_body}'
-
-                            headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-                            response = requests.request("POST", url, headers=headers, data=payload)
+                            url = settings.INFOZILLION_URL
+                            header = {"Content-Type": "application/json"}
+                            payload = {
+                                "username": settings.INFOZILLION_USERNAME,
+                                "password": settings.INFOZILLION_PASSWORD,
+                                "apiKey": settings.INFOZILLION_APIKEY,
+                                "billMsisdn": "01894784405",
+                                "cli": "MobiReach",
+                                "transactionType": transaction_type,
+                                "messageType": 3,
+                                "msisdnList": ["8801839841234"],
+                                "message": "hello from pacecloud (sms core method)"
+                            }
+                            # return {"payload": json.dumps(payload)}
+                            # response = requests.request("POST", url, headers=headers, data=payload)
+                            response = requests.post(url, data=json.dumps(payload), headers=header)
                             # parser = XMLtoDict()
                             # response = parser.parse(response.text)['ArrayOfServiceClass']['ServiceClass']
-                            return {"code": "200", "response": response}
+                            return {"code": 200, "response": response}
                             ########### End call the operator API here ###########
                     else:
                         return {"msg": "else"}
@@ -1415,14 +1416,12 @@ def checkAPICall(request):
     # })
 
     url = "https://a2papiintl.mnpspbd.com/a2p-sms/api/v1/send-sms"
-    header = {
-        "Content-Type": "application/json"
-    }
+    header = {"Content-Type": "application/json"}
     payload = {
         "username": "central_platform",
         "password": "2022#MrCent",
-        "billMsisdn": "01894784405",
         "apiKey": "8Q83Ryid1fSrUq6qUtfss7IUUiQ9BS8o",
+        "billMsisdn": "01894784405",
         "cli": "MobiReach",
         "msisdnList": ["8801839841234"],
         "transactionType": "T",
