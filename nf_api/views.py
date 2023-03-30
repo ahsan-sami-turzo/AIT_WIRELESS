@@ -1012,17 +1012,20 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                             cli = param.get('cli')
                             transactionType = param.get('transaction_type')
                             messageType = param.get('message_type')
-                            msisdnList = [param.get('receiver')]
+                            msisdnList = param.get('receiver')
                             message = quote_plus(param.get('sms_body'))
 
                             ########### Start call the operator API here ###########
-                            url = settings.INFOZILLION_URL
-                            payload = f'username={username}&password={password}&apiKey={apiKey}&billMsisdn={billMsisdn}&cli={cli}&transactionType={transactionType}&messageType={messageType}&msisdnList={msisdnList}&message={message}'
-                            headers = {'Content-Type': 'application/json'}
+                            # url = settings.INFOZILLION_URL
+                            url = "https://a2papiintl.mnpspbd.com/a2p-sms/api/v1/send-sms"
+                            # payload = f'username={username}&password={password}&apiKey={apiKey}&billMsisdn={billMsisdn}&cli={cli}&transactionType={transactionType}&messageType={messageType}&msisdnList={msisdnList}&message={message}'
+                            payload = f'Username={settings.MOBIREACH_USERNAME}&Password={settings.MOBIREACH_PASSWORD}&From={sender_id}&To={msisdnList}&Message={sms_body}'
+
+                            headers = {'Content-Type': 'application/x-www-form-urlencoded'}
                             response = requests.request("POST", url, headers=headers, data=payload)
-                            parser = XMLtoDict()
-                            response = parser.parse(response.text)['ArrayOfServiceClass']['ServiceClass']
-                            return {"response": response}
+                            # parser = XMLtoDict()
+                            # response = parser.parse(response.text)['ArrayOfServiceClass']['ServiceClass']
+                            return {"code": "200", "response": response}
                             ########### End call the operator API here ###########
                     else:
                         return {"msg": "else"}
@@ -1406,7 +1409,27 @@ def checkAPICall(request):
     """
     Return if api call is ok
     """
-    return Response({
-        'code': status.HTTP_200_OK,
-        'message': 'API call received successfully!'
-    })
+    # return Response({
+    #     'code': status.HTTP_200_OK,
+    #     'message': 'API call received successfully!'
+    # })
+
+    url = "https://a2papiintl.mnpspbd.com/a2p-sms/api/v1/send-sms"
+    header = {
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "username": "central_platform",
+        "password": "2022#MrCent",
+        "billMsisdn": "01894784405",
+        "apiKey": "8Q83Ryid1fSrUq6qUtfss7IUUiQ9BS8o",
+        "cli": "MobiReach",
+        "msisdnList": ["8801839841234"],
+        "transactionType": "T",
+        "messageType": 1,
+        "message": "hello from pacecloud 3"
+    }
+    result = requests.post(url, data=json.dumps(payload), headers=header)
+    parser = XMLtoDict()
+    response = parser.parse(result.text)['ArrayOfServiceClass']['ServiceClass']
+    return response
