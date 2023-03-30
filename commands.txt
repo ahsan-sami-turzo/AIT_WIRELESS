@@ -10,4 +10,9 @@
 == live deploy == 
 1. sh deploy.sh
 2. docker ps // list of running containers 
-2. docker start/stop/restart <container-id> || docker restart <container_id> || docker exec -it <container_id> bash 
+2. docker start/stop/restart <container-id> || docker restart <container_id> || docker exec -it <container_id> bash
+
+
+103.123.8.30
+root
+hi@PCuser#2!

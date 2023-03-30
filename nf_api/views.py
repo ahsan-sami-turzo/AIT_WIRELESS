@@ -23,6 +23,9 @@ from Notifier.celery import app
 from nf_core.helper import *
 from .serializers import *
 
+import requests
+from urllib.parse import unquote_plus, quote_plus
+
 
 @api_view(['POST'])
 @authentication_classes([])
@@ -113,8 +116,10 @@ def clientRegistration(request):
             user_info_instance.expiry_date = exp_date
             user_info_instance.save()
 
-            writeActivityLog(request, f"Fund {settings.APP_CURRENCY} {round(float(5), 2)} has been added to client {user_info_instance.user.email} balance.")
-            writeActivityLog(request, f"Client ({user_info_instance.user.email}) => Old Balance: {user_info_instance.credit} & New Balance: {new_balance}")
+            writeActivityLog(request,
+                             f"Fund {settings.APP_CURRENCY} {round(float(5), 2)} has been added to client {user_info_instance.user.email} balance.")
+            writeActivityLog(request,
+                             f"Client ({user_info_instance.user.email}) => Old Balance: {user_info_instance.credit} & New Balance: {new_balance}")
 
             UserConfig.objects.create(user=user_instance)
 
@@ -896,7 +901,6 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
     sms_length, sms_type, sms_count, sms_body = validateSMSBody(request, original_sms_body)
     sms_body = unquote_plus(sms_body)
     sender_id = req_sender_id
-
     cli = request.data['cli']
     transaction_type = request.data['transaction_type']
     message_type = request.data['message_type']
@@ -938,7 +942,8 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
         old_balance = user_info_instance.credit
 
         for num in mobile_numbers:
-            error, error_msg, operator_name, sms_rate = getMobileOperatorNameAndRate(request, sms_rates, num, sms_category)
+            error, error_msg, operator_name, sms_rate = getMobileOperatorNameAndRate(request, sms_rates, num,
+                                                                                     sms_category)
             if error:
                 return {
                     'code': status.HTTP_400_BAD_REQUEST,
@@ -988,11 +993,38 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                         "transaction_type": transaction_type,
                         "message_type": message_type,
                     }
+                    # return {
+                    #     "schedule_time": schedule_time,
+                    #     "DEBUG": settings.DEBUG,
+                    #     "param": param
+                    # }
 
                     if schedule_time is None:
+                        # return {"msg": "schedule time is none condition"}
                         if not settings.DEBUG:
-                            app.send_task("nf_core.tasks.sendSMSQueue", queue=queue_name, kwargs=param)
+                            # app.send_task("nf_core.tasks.sendSMSQueue", queue=queue_name, kwargs=param)
+
+                            username = settings.INFOZILLION_USERNAME
+                            password = settings.INFOZILLION_PASSWORD
+                            apiKey = settings.INFOZILLION_APIKEY
+                            billMsisdn = param.get('sender_id')
+                            cli = param.get('cli')
+                            transactionType = param.get('transaction_type')
+                            messageType = param.get('message_type')
+                            msisdnList = [param.get('receiver')]
+                            message = quote_plus(param.get('sms_body'))
+
+                            ########### Start call the operator API here ###########
+                            url = settings.INFOZILLION_URL
+                            payload = f'username={username}&password={password}&apiKey={apiKey}&billMsisdn={billMsisdn}&cli={cli}&transactionType={transactionType}&messageType={messageType}&msisdnList={msisdnList}&message={message}'
+                            headers = {'Content-Type': 'application/json'}
+                            response = requests.request("POST", url, headers=headers, data=payload)
+                            parser = XMLtoDict()
+                            response = parser.parse(response.text)['ArrayOfServiceClass']['ServiceClass']
+                            return {"response": response}
+                            ########### End call the operator API here ###########
                     else:
+                        return {"msg": "else"}
                         sms_instance.scheduled = True
                         sms_instance.scheduled_time = schedule_time
                         sms_instance.scheduled_params = json.dumps(param)
@@ -1005,7 +1037,8 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                             scheduled_time=schedule_time
                         )
 
-                    writeActivityLog(request, f"SMS queue successfully. Queue: {queue_name} | ID: {sms_instance.id} | Cost: {sms_cost} | New Balance: {new_balance}")
+                    writeActivityLog(request,
+                                     f"SMS queue successfully. Queue: {queue_name} | ID: {sms_instance.id} | Cost: {sms_cost} | New Balance: {new_balance}")
 
                     sms_report.append({
                         'uid': sms_instance.uid,
@@ -1020,7 +1053,8 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                         'message': 'SMS sending failed! You account balance has been expired.'
                     }
             else:
-                writeErrorLog(request, f'SMS sending failed! Insufficient balance. | {settings.APP_CURRENCY} {user_info_instance.credit}')
+                writeErrorLog(request,
+                              f'SMS sending failed! Insufficient balance. | {settings.APP_CURRENCY} {user_info_instance.credit}')
                 return {
                     'code': status.HTTP_400_BAD_REQUEST,
                     'message': 'SMS sending failed! Insufficient balance.'
@@ -1034,7 +1068,8 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
             'data': sms_report
         }
     else:
-        writeErrorLog(request, f"User: {request.user.email} | SMS Length: {sms_length} | SMS Count: {sms_count} | Valid: {valid}")
+        writeErrorLog(request,
+                      f"User: {request.user.email} | SMS Length: {sms_length} | SMS Count: {sms_count} | Valid: {valid}")
         return {
             'code': status.HTTP_400_BAD_REQUEST,
             'message': 'Something went wrong. Please try again!'
@@ -1101,7 +1136,8 @@ def scheduleSMS(request):
             schedule_time = str(request.GET['schedule_time']).strip()
             schedule_time = datetime.strptime(schedule_time, "%Y-%m-%d %H:%M").astimezone()
 
-        response = sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, req_sender_id, schedule_time)
+        response = sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, req_sender_id,
+                               schedule_time)
         return Response(response)
     except Exception as e:
         writeErrorLog(request, e)
@@ -1296,7 +1332,9 @@ def getDashboardSummary(request):
     Return the summary for the dashboard
     """
     try:
-        total_sms_cost = round(SMSHistory.objects.filter(user=request.user, status="Delivered").aggregate(total=Sum('sms_cost'))['total'], 2)
+        total_sms_cost = round(
+            SMSHistory.objects.filter(user=request.user, status="Delivered").aggregate(total=Sum('sms_cost'))['total'],
+            2)
     except Exception as e:
         total_sms_cost = 0
         writeErrorLog(request, e)
@@ -1329,7 +1367,9 @@ def getDashboardGraph(request):
         current_year = datetime.now().astimezone().year
         month = "{:02d}".format(month)
         start_date = datetime.strptime(f"{current_year}-{month}-01 00:00:00", "%Y-%m-%d %H:%M:%S").astimezone()
-        end_date = datetime.strptime(f"{current_year}-{month}-{calendar.monthrange(current_year, int(month))[1]} 23:59:59", "%Y-%m-%d %H:%M:%S").astimezone()
+        end_date = datetime.strptime(
+            f"{current_year}-{month}-{calendar.monthrange(current_year, int(month))[1]} 23:59:59",
+            "%Y-%m-%d %H:%M:%S").astimezone()
         sms_graph = sms_history.filter(created_at__range=[start_date, end_date])
         total_data.append(sms_graph.count())
         pending_data.append(sms_graph.filter(status="Pending").count())
@@ -1369,4 +1409,3 @@ def checkAPICall(request):
         'code': status.HTTP_200_OK,
         'message': 'API call received successfully!'
     })
-

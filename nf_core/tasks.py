@@ -214,7 +214,9 @@ def microSMSQueue(self, *args, **kwargs):
         headers = {
             'Content-Type': 'application/json'
         }
-
+        return {
+            "url": url, "payload": payload, "headers": headers
+        }
         response = requests.request("POST", url, headers=headers, data=payload)
         parser = XMLtoDict()
         response = parser.parse(response.text)['ArrayOfServiceClass']['ServiceClass']
@@ -259,6 +261,7 @@ def microSMSQueue(self, *args, **kwargs):
 
 @shared_task(bind=True, default_retry_delay=30, max_retries=5)
 def sendSMSQueue(self, *args, **kwargs):
+    # return {"kwargs": kwargs}
     try:
         micro_general_queue = f"micro{random.randint(1, 6)}"
         # micro_general_queue = f"micro1"
