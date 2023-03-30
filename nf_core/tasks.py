@@ -132,67 +132,6 @@ def updateSMSStatus(self, *args, **kwargs):
         self.retry()
 
 
-"""
-@shared_task(bind=True, default_retry_delay=30, max_retries=5)
-def microSMSQueue(self, *args, **kwargs):
-    update_queue = f"update{random.randint(1, 3)}"
-    try:
-        sms_body = quote_plus(kwargs.get('sms_body'))
-        sms_type = kwargs.get('sms_type')
-        sender_id = kwargs.get('sender_id')
-        receiver = kwargs.get('receiver')
-
-        ########### Start call the operator API here ###########
-        url = "https://api.mobireach.com.bd/SendTextMessage"
-
-        payload = f'Username={settings.MOBIREACH_USERNAME}&Password={settings.MOBIREACH_PASSWORD}&From={sender_id}&To={receiver}&Message={sms_body}'
-        headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-
-        response = requests.request("POST", url, headers=headers, data=payload)
-        parser = XMLtoDict()
-        response = parser.parse(response.text)['ArrayOfServiceClass']['ServiceClass']
-        ########### End call the operator API here ###########
-
-        if int(response['Status']) >= 0:
-            shoot_id = response['MessageId']
-            update_payload = {
-                "sms_id": kwargs.get('sms_id'),
-                "user_id": kwargs.get('user_id'),
-                "shoot_id": shoot_id,
-                "status": "Submitted",
-                "failure_reason": None
-            }
-            app.send_task("nf_core.tasks.updateSMSStatus", queue=update_queue, kwargs=update_payload)
-            return f"SUBMITTED | SHOOT ID: {shoot_id} | SMS ID: {kwargs.get('sms_id')} | User ID: {kwargs.get('user_id')}"
-        else:
-            error_msg = f"Error Code: {response['ErrorCode']} | Message: {response['ErrorText']}"
-            update_payload = {
-                "sms_id": kwargs.get('sms_id'),
-                "user_id": kwargs.get('user_id'),
-                "shoot_id": None,
-                "status": "Failed",
-                "failure_reason": error_msg
-            }
-            app.send_task("nf_core.tasks.updateSMSStatus", queue=update_queue, kwargs=update_payload)
-            return f"FAILED | SMS ID: {kwargs.get('sms_id')} | User ID: {kwargs.get('user_id')} | {error_msg}"
-    except Exception as e:
-        try:
-            update_payload = {
-                "sms_id": kwargs.get('sms_id'),
-                "user_id": kwargs.get('user_id'),
-                "shoot_id": None,
-                "status": "Failed",
-                "failure_reason": str(e)
-            }
-            app.send_task("nf_core.tasks.updateSMSStatus", queue=update_queue, kwargs=update_payload)
-        except Exception:
-            pass
-        self.retry()
-"""
-
-
 @shared_task(bind=True, default_retry_delay=30, max_retries=5)
 def microSMSQueue(self, *args, **kwargs):
     update_queue = f"update{random.randint(1, 3)}"
