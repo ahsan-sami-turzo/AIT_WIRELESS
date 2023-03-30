@@ -897,7 +897,7 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
     sms_body = unquote_plus(sms_body)
     sender_id = req_sender_id
 
-    cli = request['cli']
+    cli = request.data['cli']
     transaction_type = request.data['transaction_type']
     message_type = request.data['message_type']
 
@@ -983,6 +983,7 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                         "receiver": sms_instance.receiver,
                         "operator_name": sms_instance.operator_name,
                         # 29-03-2023
+                        # for Infozillion API
                         "cli": cli,
                         "transaction_type": transaction_type,
                         "message_type": message_type,
