@@ -918,7 +918,6 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
         user_info_instance = UserInfo.objects.get(user=request.user)
         user_instance = user_info_instance.user
         user_config = UserConfig.objects.get(user=request.user)
-
         queue_name = user_config.queue.queue
 
         """
@@ -1008,21 +1007,22 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                             # message = quote_plus(param.get('sms_body'))
 
                             ########### Start call the operator API here ###########
+                            # url = "https://a2papiintl.mnpspbd.com/a2p-sms/api/v1/send-sms"
                             url = settings.INFOZILLION_URL
                             header = {"Content-Type": "application/json"}
                             payload = {
                                 "username": settings.INFOZILLION_USERNAME,
                                 "password": settings.INFOZILLION_PASSWORD,
                                 "apiKey": settings.INFOZILLION_APIKEY,
-                                "billMsisdn": "01894784405",
-                                "cli": "MobiReach",
+                                "billMsisdn": sender_id,
+                                "cli": cli,
+                                "msisdnList": [num],
                                 "transactionType": transaction_type,
                                 "messageType": 3,
-                                "msisdnList": ["8801839841234"],
                                 "message": "hello from pacecloud (sms core method)"
                             }
                             # return {"payload": json.dumps(payload)}
-                            # response = requests.request("POST", url, headers=headers, data=payload)
+                            # response = requests.request("POST", url, headers=header, data=payload)
                             response = requests.post(url, data=json.dumps(payload), headers=header)
                             # parser = XMLtoDict()
                             # response = parser.parse(response.text)['ArrayOfServiceClass']['ServiceClass']
@@ -1426,7 +1426,7 @@ def checkAPICall(request):
         "msisdnList": ["8801839841234"],
         "transactionType": "T",
         "messageType": 1,
-        "message": "hello from pacecloud 3"
+        "message": "hello from pacecloud (check api call method)"
     }
     result = requests.post(url, data=json.dumps(payload), headers=header)
     parser = XMLtoDict()
