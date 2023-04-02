@@ -1021,12 +1021,20 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                                 "messageType": 3,
                                 "message": "hello from pacecloud (sms core method)"
                             }
-                            # return {"payload": json.dumps(payload)}
-                            # response = requests.request("POST", url, headers=header, data=payload)
+
                             response = requests.post(url, data=json.dumps(payload), headers=header)
-                            # parser = XMLtoDict()
-                            # response = parser.parse(response.text)['ArrayOfServiceClass']['ServiceClass']
-                            return {"code": 200, "response": response}
+                            response = response.json()
+                            # response = {
+                            #     "serverTxnId": "0255091f-5774-45c8-b129-cd054677fd1c",
+                            #     "serverResponseCode": 9000,
+                            #     "serverResponseMessage": "Request successful!",
+                            #     "mnoTxnId": "ROBI1680168041935017",
+                            #     "mnoResponseCode": "1000",
+                            #     "mnoResponseMessage": "Success"
+                            # }
+                            return {"response": response, "serverTxnId": response['serverTxnId'],
+                                    "serverResponseCode": response['serverResponseCode'],
+                                    "serverResponseMessage": response['serverResponseMessage']}
                             ########### End call the operator API here ###########
                     else:
                         return {"msg": "else"}
@@ -1404,17 +1412,7 @@ def getDashboardGraph(request):
 
 # 29-03-2023
 @api_view(['GET'])
-# @authentication_classes([JWTAuthentication])
-# @permission_classes([IsAuthenticated])
-def checkAPICall(request):
-    """
-    Return if api call is ok
-    """
-    # return Response({
-    #     'code': status.HTTP_200_OK,
-    #     'message': 'API call received successfully!'
-    # })
-
+def testInfozAPI(request):
     url = "https://a2papiintl.mnpspbd.com/a2p-sms/api/v1/send-sms"
     header = {"Content-Type": "application/json"}
     payload = {
@@ -1428,7 +1426,14 @@ def checkAPICall(request):
         "messageType": 1,
         "message": "hello from pacecloud (check api call method)"
     }
-    result = requests.post(url, data=json.dumps(payload), headers=header)
-    parser = XMLtoDict()
-    response = parser.parse(result.text)['ArrayOfServiceClass']['ServiceClass']
+    response = requests.post(url, data=json.dumps(payload), headers=header)
+    response = response.json()
     return response
+
+
+@api_view(['GET'])
+def testAPI(request):
+    return Response({
+        'code': status.HTTP_200_OK,
+        'message': 'API call received successfully!'
+    })

@@ -73,19 +73,15 @@ def uploadContact(file_path, user_id, group_id):
         return str(e)
 
 
-def getDeliveryStatus(sender_id, receiver, shoot_id):
-    url = settings.INFOZILLION_URL + "/api/v1/check-delivery-report/"
-    payload = {
-        "username": settings.INFOZILLION_USERNAME,
-        "password": settings.INFOZILLION_PASSWORD,
-        "apiKey": settings.INFOZILLION_APIKEY,
-        "billMsisdn": sender_id,
-        "msisdnList": [receiver],
-        "serverReference": shoot_id
-    }
-    header = {"Content-Type": "application/json"}
-    response = requests.post(url, data=json.dumps(payload), headers=header)
-    response = response.json()
+def getDeliveryStatus(shoot_id):
+    url = f"https://api.mobireach.com.bd/GetMessageStatus?Username={settings.MOBIREACH_USERNAME}&Password={settings.MOBIREACH_PASSWORD}&MessageId={shoot_id}"
+
+    payload = {}
+    headers = {}
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+    parser = XMLtoDict()
+    response = parser.parse(response.text)['ArrayOfServiceClass']['ServiceClass']
     return response
 
 
@@ -95,15 +91,13 @@ def updateSMSStatus(self, *args, **kwargs):
         json_payload = kwargs
         sms_instance = SMSHistory.objects.get(id=json_payload['sms_id'], user_id=json_payload['user_id'])
         sms_instance.shoot_id = json_payload['shoot_id']
-        sms_instance.receiver = json_payload['receiver']
-        sms_instance.sender_id = json_payload['sender_id']
         sms_instance.status = json_payload['status']
         sms_instance.failure_reason = json_payload['failure_reason']
         sms_instance.save()
 
         if sms_instance.shoot_id is not None:
             ########### Check SMS Delivery Status here ###########
-            response = getDeliveryStatus(sms_instance.sender_id, sms_instance.receiver, sms_instance.shoot_id)
+            response = getDeliveryStatus(sms_instance.shoot_id)
             sms_instance.api_response = response
             sms_instance.save()
             ########### End Check SMS Delivery Status here ###########
@@ -116,7 +110,7 @@ def updateSMSStatus(self, *args, **kwargs):
                 while int(response['Status']) == 0 or int(response['Status']) == 2:
                     if check_counter >= 5:
                         break
-                    response = getDeliveryStatus(sms_instance.sender_id, sms_instance.receiver, sms_instance.shoot_id)
+                    response = getDeliveryStatus(sms_instance.shoot_id)
                     check_counter += 1
                     time.sleep(10)
                 sms_instance.api_response = response
@@ -148,13 +142,14 @@ def microSMSQueue(self, *args, **kwargs):
         receiver = kwargs.get('receiver')
 
         ########### Start call the operator API here ###########
-        url = settings.INFOZILLION_URL + "/api/v1/send-sms"
+        url = settings.INFOZILLION_URL
+        # payload = f'Username={settings.MOBIREACH_USERNAME}&Password={settings.MOBIREACH_PASSWORD}&From={sender_id}&To={receiver}&Message={sms_body}'
         payload = {
             "username": settings.INFOZILLION_USERNAME,
             "password": settings.INFOZILLION_PASSWORD,
             "apiKey": settings.INFOZILLION_APIKEY,
             "billMsisdn": sender_id,
-            "cli": "AMBALA",
+            "cli": "MobiReach",
             "msisdnList": [receiver],
             "transactionType": "T",
             "messageType": 3,
@@ -171,8 +166,6 @@ def microSMSQueue(self, *args, **kwargs):
                 "sms_id": kwargs.get('sms_id'),
                 "user_id": kwargs.get('user_id'),
                 "shoot_id": shoot_id,
-                "sender_id": sender_id,
-                "receiver": receiver,
                 "status": "Submitted",
                 "failure_reason": None
             }
@@ -184,8 +177,6 @@ def microSMSQueue(self, *args, **kwargs):
                 "sms_id": kwargs.get('sms_id'),
                 "user_id": kwargs.get('user_id'),
                 "shoot_id": None,
-                "sender_id": sender_id,
-                "receiver": receiver,
                 "status": "Failed",
                 "failure_reason": error_msg
             }
@@ -197,8 +188,6 @@ def microSMSQueue(self, *args, **kwargs):
                 "sms_id": kwargs.get('sms_id'),
                 "user_id": kwargs.get('user_id'),
                 "shoot_id": None,
-                "sender_id": sender_id,
-                "receiver": receiver,
                 "status": "Failed",
                 "failure_reason": str(e)
             }

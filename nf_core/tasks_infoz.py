@@ -74,7 +74,8 @@ def uploadContact(file_path, user_id, group_id):
 
 
 def getDeliveryStatus(sender_id, receiver, shoot_id):
-    url = settings.INFOZILLION_URL + "/api/v1/check-delivery-report/"
+    ########### Start call the operator API here ###########
+    url = settings.INFOZILLION_BASE_URL + "api/v1/check-delivery-report/"
     payload = {
         "username": settings.INFOZILLION_USERNAME,
         "password": settings.INFOZILLION_PASSWORD,
@@ -87,6 +88,7 @@ def getDeliveryStatus(sender_id, receiver, shoot_id):
     response = requests.post(url, data=json.dumps(payload), headers=header)
     response = response.json()
     return response
+    ########### End call the operator API here ###########
 
 
 @shared_task(bind=True, default_retry_delay=30, max_retries=3)
@@ -108,31 +110,13 @@ def updateSMSStatus(self, *args, **kwargs):
             sms_instance.save()
             ########### End Check SMS Delivery Status here ###########
 
-            if int(response['Status']) < 0:
-                sms_instance.status = "Failed"
-                sms_instance.failure_reason = f"Error Code: {response['ErrorCode']} | Message: {response['ErrorText']}"
-            else:
-                check_counter = 0
-                while int(response['Status']) == 0 or int(response['Status']) == 2:
-                    if check_counter >= 5:
-                        break
-                    response = getDeliveryStatus(sms_instance.sender_id, sms_instance.receiver, sms_instance.shoot_id)
-                    check_counter += 1
-                    time.sleep(10)
-                sms_instance.api_response = response
+            if int(response['serverResponseCode']) == 9000:
+                sms_instance.status = response['a2pDeliveryStatus']
                 sms_instance.save()
-                if int(response['Status']) < 0:
-                    sms_instance.status = "Failed"
-                    sms_instance.failure_reason = f"Error Code: {response['ErrorCode']} | Message: {response['ErrorText']}"
-                else:
-                    if int(response['Status']) == 0:
-                        sms_instance.status = "Submitted"
-                    elif int(response['Status']) == 1:
-                        # Successfully transmitted
-                        sms_instance.status = "Delivered"
-                    elif int(response['Status']) == 2:
-                        sms_instance.status = "Processing"
-                    sms_instance.save()
+            else:
+                sms_instance.status = "Failed"
+                sms_instance.failure_reason = f"Error Code: {response['serverResponseCode']} | Message: {response['serverResponseMessage']}"
+                sms_instance.save()
         SMSQueueHandler.objects.filter(sms_id=json_payload['sms_id'], user_id=json_payload['user_id']).delete()
     except Exception:
         self.retry()
@@ -148,7 +132,8 @@ def microSMSQueue(self, *args, **kwargs):
         receiver = kwargs.get('receiver')
 
         ########### Start call the operator API here ###########
-        url = settings.INFOZILLION_URL + "/api/v1/send-sms"
+        url = settings.INFOZILLION_URL
+        # payload = f'Username={settings.MOBIREACH_USERNAME}&Password={settings.MOBIREACH_PASSWORD}&From={sender_id}&To={receiver}&Message={sms_body}'
         payload = {
             "username": settings.INFOZILLION_USERNAME,
             "password": settings.INFOZILLION_PASSWORD,
