@@ -2,9 +2,9 @@ import json
 import csv
 import os.path
 import calendar
+import requests
 from datetime import timedelta, datetime
 from urllib.parse import unquote_plus
-
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
 from django.db.models import Sum, Q
@@ -18,14 +18,9 @@ from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
-
 from Notifier.celery import app
 from nf_core.helper import *
 from .serializers import *
-
-import requests
-from urllib.parse import unquote_plus, quote_plus
-from xml_to_dict import XMLtoDict
 
 
 @api_view(['POST'])
@@ -902,8 +897,6 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
     sms_length, sms_type, sms_count, sms_body = validateSMSBody(request, original_sms_body)
     sms_body = unquote_plus(sms_body)
     sender_id = req_sender_id
-    cli = request.data['cli']
-    transaction_type = request.data['transaction_type']
 
     if sms_length > 0 and sms_count > 0 and valid > 0:
         """
@@ -918,6 +911,7 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
         user_info_instance = UserInfo.objects.get(user=request.user)
         user_instance = user_info_instance.user
         user_config = UserConfig.objects.get(user=request.user)
+
         queue_name = user_config.queue.queue
 
         """
@@ -985,59 +979,13 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                         "sms_type": sms_instance.sms_type,
                         "sms_body": sms_instance.sms_body,
                         "receiver": sms_instance.receiver,
-                        "operator_name": sms_instance.operator_name,
-                        # 29-03-2023
-                        # for Infozillion API
-                        "cli": cli,
-                        "transaction_type": transaction_type
+                        "operator_name": sms_instance.operator_name
                     }
 
                     if schedule_time is None:
-                        # return {"msg": "schedule time is none condition"}
                         if not settings.DEBUG:
-                            # app.send_task("nf_core.tasks.sendSMSQueue", queue=queue_name, kwargs=param)
-
-                            # username = settings.INFOZILLION_USERNAME
-                            # password = settings.INFOZILLION_PASSWORD
-                            # apiKey = settings.INFOZILLION_APIKEY
-                            # billMsisdn = param.get('sender_id')
-                            # cli = param.get('cli')
-                            # transactionType = param.get('transaction_type')
-                            # msisdnList = param.get('receiver')
-                            # message = quote_plus(param.get('sms_body'))
-
-                            ########### Start call the operator API here ###########
-                            # url = "https://a2papiintl.mnpspbd.com/a2p-sms/api/v1/send-sms"
-                            url = settings.INFOZILLION_URL
-                            header = {"Content-Type": "application/json"}
-                            payload = {
-                                "username": settings.INFOZILLION_USERNAME,
-                                "password": settings.INFOZILLION_PASSWORD,
-                                "apiKey": settings.INFOZILLION_APIKEY,
-                                "billMsisdn": sender_id,
-                                "cli": cli,
-                                "msisdnList": [num],
-                                "transactionType": transaction_type,
-                                "messageType": 3,
-                                "message": "hello from pacecloud (sms core method)"
-                            }
-
-                            response = requests.post(url, data=json.dumps(payload), headers=header)
-                            response = response.json()
-                            # response = {
-                            #     "serverTxnId": "0255091f-5774-45c8-b129-cd054677fd1c",
-                            #     "serverResponseCode": 9000,
-                            #     "serverResponseMessage": "Request successful!",
-                            #     "mnoTxnId": "ROBI1680168041935017",
-                            #     "mnoResponseCode": "1000",
-                            #     "mnoResponseMessage": "Success"
-                            # }
-                            return {"response": response, "serverTxnId": response['serverTxnId'],
-                                    "serverResponseCode": response['serverResponseCode'],
-                                    "serverResponseMessage": response['serverResponseMessage']}
-                            ########### End call the operator API here ###########
+                            app.send_task("nf_core.tasks.sendSMSQueue", queue=queue_name, kwargs=param)
                     else:
-                        return {"msg": "else"}
                         sms_instance.scheduled = True
                         sms_instance.scheduled_time = schedule_time
                         sms_instance.scheduled_params = json.dumps(param)
@@ -1410,7 +1358,6 @@ def getDashboardGraph(request):
     })
 
 
-# 29-03-2023
 @api_view(['GET'])
 def testInfozAPI(request):
     url = "https://a2papiintl.mnpspbd.com/a2p-sms/api/v1/send-sms"

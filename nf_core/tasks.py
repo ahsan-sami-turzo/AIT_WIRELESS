@@ -154,7 +154,7 @@ def microSMSQueue(self, *args, **kwargs):
             "password": settings.INFOZILLION_PASSWORD,
             "apiKey": settings.INFOZILLION_APIKEY,
             "billMsisdn": sender_id,
-            "cli": "AMBALA",
+            "cli": "MobiReach",
             "msisdnList": [receiver],
             "transactionType": "T",
             "messageType": 3,
