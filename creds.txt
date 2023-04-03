@@ -1,0 +1,66 @@
+== InfoZ Test ==
+Login portal : https://a2puser.mnpspbd.com
+Username: ali@ambalait.com
+Password: Mp76bbbyRe
+
+== InfoZ Prod ==
+Login portal : https://myportal.mnpspbd.com
+Username: AmbalaIT
+Password: AViGso8QGu
+
+== Robi Panel ==
+ambala
+gEjfmD3@cduAY7F
+
+== PaceCloud ==
+103.123.8.30
+root
+hi@PCuser#2!
+
+== IP LIST ==
+103.174.51.20 >> SRV1
+173.249.52.77 >> CONTABO
+103.123.8.30  >> PACECLOUD
+
+== Local aaPanel ==
+https://192.168.1.115:7800/b1bc53c9
+suinvxha
+b44aec3e
+
+
+######################################################
+##############  AMBALA WIRELESS - SRV1  ##############
+######################################################
+
+Server Root Access:
+=================
+IP: 103.174.51.20
+Hostname: srv1.ambalawireless.com
+Username: root
+Password: qNyiB&UxXOdD
+SSH Port: 2249
+aaPanel - Control Panel Access
+=================
+Login URL: https://srv1.ambalawireless.com:7800/ambala/
+Username: ambalawireless
+Password: Z2yHE5ccFC
+Client API Documentation: https://documenter.getpostman.com/view/23406836/2s8YYLKh9i
+
+SMS Worker Manager
+====================
+Login URL: https://worker.ambalawireless.com/
+Username: ambala
+Password: ambalA9090
+Database Access - PgAdmin
+======================
+Login URL: https://pgadmin.ambalawireless.com/
+Username: ambalawireless@gmail.com
+Password: ambalA9090
+Admin Panel
+======================
+Login URL: https://manage.ambalawireless.com/
+Email: ambalawireless@gmail.com
+Password: ambalA9090
+Client Panel
+======================
+Login URL: https://portal.ambalawireless.com/

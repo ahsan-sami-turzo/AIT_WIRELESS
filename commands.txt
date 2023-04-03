@@ -12,7 +12,6 @@
 2. docker ps // list of running containers 
 2. docker start/stop/restart <container-id> || docker restart <container_id> || docker exec -it <container_id> bash
 
-
-103.123.8.30
-root
-hi@PCuser#2!
+== Transfer file to remote server from windows ==
+go to file location >> pscp -P 22 <filename.extension> root@<remote-ip>:<file-location>
+example: pscp -P 22 image.png root@192.168.1.115:/var/www/html/test
