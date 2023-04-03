@@ -1358,29 +1358,53 @@ def getDashboardGraph(request):
     })
 
 
-@api_view(['GET'])
-def testInfozAPI(request):
-    url = "https://a2papiintl.mnpspbd.com/a2p-sms/api/v1/send-sms"
-    header = {"Content-Type": "application/json"}
+def getDeliveryStatus(sender_id, receiver, shoot_id):
+    url = "https://a2papiintl.mnpspbd.com/a2p-sms/api/v1/check-delivery-report/"
     payload = {
         "username": "central_platform",
         "password": "2022#MrCent",
         "apiKey": "8Q83Ryid1fSrUq6qUtfss7IUUiQ9BS8o",
-        "billMsisdn": "01894784405",
-        "cli": "MobiReach",
-        "msisdnList": ["8801839841234"],
-        "transactionType": "T",
-        "messageType": 1,
-        "message": "hello from pacecloud (check api call method)"
+        "billMsisdn": sender_id,
+        "msisdnList": [receiver],
+        "serverReference": shoot_id
     }
+    header = {"Content-Type": "application/json"}
     response = requests.post(url, data=json.dumps(payload), headers=header)
     response = response.json()
+    # response = dict(url=url, payload=payload)
     return response
 
 
 @api_view(['GET'])
+def testInfozAPI(request):
+    try:
+        url = "https://a2papiintl.mnpspbd.com/a2p-sms/api/v1/send-sms"
+        header = {"Content-Type": "application/json"}
+        payload = {
+            "username": "central_platform",
+            "password": "2022#MrCent",
+            "apiKey": "8Q83Ryid1fSrUq6qUtfss7IUUiQ9BS8o",
+            "billMsisdn": "01894784405",
+            "cli": "MobiReach",
+            "msisdnList": ["8801839841234"],
+            "transactionType": "T",
+            "messageType": 1,
+            "message": "hello from pacecloud (check api call method)"
+        }
+        # return Response(dict(url=url, payload=payload))
+        response = requests.post(url, data=json.dumps(payload), headers=header)
+        response = response.json()
+
+        sender_id = "01894784405"
+        receiver = "8801839841234"
+        shoot_id = response['serverTxnId']
+        deliveryStatus = getDeliveryStatus(sender_id, receiver, shoot_id)
+
+        return Response(dict(response=response, deliveryStatus=deliveryStatus))
+    except Exception as e:
+        return (e)
+
+
+@api_view(['GET'])
 def testAPI(request):
-    return Response({
-        'code': status.HTTP_200_OK,
-        'message': 'API call received successfully!'
-    })
+    return Response(dict(code=status.HTTP_200_OK, message="API call received successfully"))
