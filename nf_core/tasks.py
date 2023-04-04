@@ -142,7 +142,7 @@ def updateSMSStatus(self, *args, **kwargs):
 def microSMSQueue(self, *args, **kwargs):
     update_queue = f"update{random.randint(1, 3)}"
     try:
-        sms_body = quote_plus(kwargs.get('sms_body'))
+        sms_body = kwargs.get('sms_body')
         sms_type = kwargs.get('sms_type')
         sender_id = kwargs.get('sender_id')
         receiver = kwargs.get('receiver')
@@ -154,13 +154,13 @@ def microSMSQueue(self, *args, **kwargs):
             "password": settings.INFOZILLION_PASSWORD,
             "apiKey": settings.INFOZILLION_APIKEY,
             "billMsisdn": sender_id,
-            "cli": "MobiReach",
+            "cli": settings.INFOZILLION_CLI,
             "msisdnList": [receiver],
             "transactionType": "T",
             "messageType": 3,
             "message": sms_body
         }
-        header = {"Content-Type": "application/json"}
+        header = {"Content-Type": "application/json; charset=utf-8"}
         response = requests.post(url, data=json.dumps(payload), headers=header)
         response = response.json()
         ########### End call the operator API here ###########
