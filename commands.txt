@@ -16,6 +16,9 @@
 go to file location >> pscp -P 22 <filename.extension> root@<remote-ip>:<file-location>
 example: pscp -P 22 image.png root@192.168.1.115:/var/www/html/test
 hi@PCuser#2!
+example: pacecloud
 pscp -P 22 urls.py root@103.123.8.30:/var/www/html/ambalaWireless/nf_api
 pscp -P 22 views.py root@103.123.8.30:/var/www/html/ambalaWireless/nf_api
 pscp -P 22 tasks.py root@103.123.8.30:/var/www/html/ambalaWireless/nf_core
+example: srv1
+pscp -P 22 tasks.py root@103.174.51.20:/home/nf_docker_project/production/nf_core

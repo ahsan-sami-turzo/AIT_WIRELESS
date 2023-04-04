@@ -1388,8 +1388,8 @@ def testInfozAPI(request):
             "cli": "MobiReach",
             "msisdnList": ["8801839841234"],
             "transactionType": "T",
-            "messageType": 1,
-            "message": "hello from pacecloud (check api call method)"
+            "messageType": 3,
+            "message": "pacecloud to infozillion sandbox"
         }
         # return Response(dict(url=url, payload=payload))
         response = requests.post(url, data=json.dumps(payload), headers=header)
@@ -1407,4 +1407,28 @@ def testInfozAPI(request):
 
 @api_view(['GET'])
 def testAPI(request):
-    return Response(dict(code=status.HTTP_200_OK, message="API call received successfully"))
+    return Response(dict(code=status.HTTP_200_OK, message="API call received successfully..."))
+
+
+@api_view(['GET'])
+def testInfozAPILive(request):
+    try:
+        url = "https://api.mnpspbd.com/a2p-sms/api/v1/send-sms"
+        header = {"Content-Type": "application/json"}
+        payload = {
+            "username": "ambala",
+            "password": "gEjfmD3@cduAY7F",
+            "apiKey": "ioP7tN47IWx7XjWwL7tJxmoPYyXqHGi9",
+            "billMsisdn": "01894784406",
+            "cli": "AMBALA",
+            "msisdnList": ["8801511311266"],
+            "transactionType": "T",
+            "messageType": 3,
+            "message": "আম্বালা ফাউন্ডেশন।"
+        }
+        # return Response(dict(url=url, payload=payload))
+        response = requests.post(url, data=json.dumps(payload), headers=header)
+        response = response.json()
+        return Response({"response": response})
+    except Exception as e:
+        return (e)
