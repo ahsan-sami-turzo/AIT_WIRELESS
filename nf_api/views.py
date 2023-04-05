@@ -1359,7 +1359,7 @@ def getDashboardGraph(request):
 
 
 def getDeliveryStatus(sender_id, receiver, shoot_id):
-    url = "https://a2papiintl.mnpspbd.com/a2p-sms/api/v1/check-delivery-report/"
+    url = "https://a2papiintl.mnpspbd.com/a2p-proxy-api/api/v1/check-delivery-report/"
     payload = {
         "username": "central_platform",
         "password": "2022#MrCent",
@@ -1370,20 +1370,18 @@ def getDeliveryStatus(sender_id, receiver, shoot_id):
     }
     header = {"Content-Type": "application/json"}
     response = requests.post(url, data=json.dumps(payload), headers=header)
-    response = response.json()
-    # response = dict(url=url, payload=payload)
-    return response
+    return response.json()
 
 
 @api_view(['GET'])
-def testInfozAPI(request):
+def sendTestSms(request):
     try:
         url = "https://a2papiintl.mnpspbd.com/a2p-sms/api/v1/send-sms"
         header = {"Content-Type": "application/json"}
         payload = {
-            "username": "central_platform",
-            "password": "2022#MrCent",
-            "apiKey": "8Q83Ryid1fSrUq6qUtfss7IUUiQ9BS8o",
+            "username": settings.INFOZILLION_USERNAME,
+            "password": settings.INFOZILLION_PASSWORD,
+            "apiKey": settings.INFOZILLION_APIKEY,
             "billMsisdn": "01894784405",
             "cli": "MobiReach",
             "msisdnList": ["8801839841234"],
@@ -1394,20 +1392,47 @@ def testInfozAPI(request):
         # return Response(dict(url=url, payload=payload))
         response = requests.post(url, data=json.dumps(payload), headers=header)
         response = response.json()
-
+        # return Response(dict(response=response))
         sender_id = "01894784405"
         receiver = "8801839841234"
         shoot_id = response['serverTxnId']
         deliveryStatus = getDeliveryStatus(sender_id, receiver, shoot_id)
-
         return Response(dict(response=response, deliveryStatus=deliveryStatus))
     except Exception as e:
-        return (e)
+        return Response(dict(error=e))
+
+
+@api_view(['GET'])
+def getDeliveryStatusAPI(request):
+    url = "https://a2papiintl.mnpspbd.com/a2p-proxy-api/api/v1/check-delivery-report/"
+
+    payload = {
+        "username": settings.INFOZILLION_USERNAME,
+        "password": settings.INFOZILLION_PASSWORD,
+        "apiKey": settings.INFOZILLION_APIKEY,
+        "billMsisdn": "01894784405",
+        "msisdnList": ["8801839841234"],
+        "serverReference": "289ad3d3-dabf-4c4b-9bc6-e732e82c7c1d"
+    }
+    header = {"Content-Type": "application/json"}
+    response = requests.post(url, data=json.dumps(payload), headers=header).json()
+    return Response(dict(response=response))
 
 
 @api_view(['GET'])
 def testAPI(request):
-    return Response(dict(code=status.HTTP_200_OK, message="API call received successfully..."))
+    deliveryStatus = getDeliveryStatus("01894784405", "8801839841234", "0cfd3fe4-7540-4828-9723-296ca6c21feb")
+    message = "API call received successfully!!!"
+    serverResponseCode = deliveryStatus["serverResponseCode"]
+    serverResponseMessage = deliveryStatus["serverResponseMessage"]
+    ds = deliveryStatus["deliveryStatus"]
+    if ds:
+        status = [ds[0]]
+    else:
+        status = 'Failed'
+    return Response(dict(code=status.HTTP_200_OK, message=message, deliveryStatus=deliveryStatus,
+                         serverResponseCode=serverResponseCode, serverResponseMessage=serverResponseMessage,
+                         status=status))
 
 
 @api_view(['GET'])

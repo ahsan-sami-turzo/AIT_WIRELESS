@@ -43,7 +43,8 @@ urlpatterns = [
     path('v1/client/get-account-balance', getAccountBalance),
 
     path('v1/client/test', testAPI),
-    path('v1/client/test/send-sms', testInfozAPI),
+    path('v1/client/test/send-sms', sendTestSms),
+    path('v1/client/test/get-delivery-status/<str:serverReference>', getDeliveryStatusAPI),
 
     path('v1/client/sms/send-sms', sendSMS),
     path('v1/client/sms/schedule-sms', scheduleSMS),

@@ -108,9 +108,9 @@ def updateSMSStatus(self, *args, **kwargs):
             sms_instance.save()
             ########### End Check SMS Delivery Status here ###########
 
-            if int(response['Status']) < 0:
+            if int(response['serverResponseCode']) != 9000:
                 sms_instance.status = "Failed"
-                sms_instance.failure_reason = f"Error Code: {response['ErrorCode']} | Message: {response['ErrorText']}"
+                sms_instance.failure_reason = f"Error Code: {response['serverResponseCode']} | Message: {response['serverResponseMessage']}"
             else:
                 check_counter = 0
                 while int(response['Status']) == 0 or int(response['Status']) == 2:
@@ -121,9 +121,9 @@ def updateSMSStatus(self, *args, **kwargs):
                     time.sleep(10)
                 sms_instance.api_response = response
                 sms_instance.save()
-                if int(response['Status']) < 0:
+                if int(response['serverResponseCode']) != 9000:
                     sms_instance.status = "Failed"
-                    sms_instance.failure_reason = f"Error Code: {response['ErrorCode']} | Message: {response['ErrorText']}"
+                    sms_instance.failure_reason = f"Error Code: {response['serverResponseCode']} | Message: {response['serverResponseMessage']}"
                 else:
                     if int(response['Status']) == 0:
                         sms_instance.status = "Submitted"
