@@ -104,34 +104,55 @@ def updateSMSStatus(self, *args, **kwargs):
         if sms_instance.shoot_id is not None:
             ########### Check SMS Delivery Status here ###########
             response = getDeliveryStatus(sms_instance.sender_id, sms_instance.receiver, sms_instance.shoot_id)
+            serverResponseCode = int(response['serverResponseCode'])
+            serverResponseMessage = response['serverResponseMessage']
+
+            if response["deliveryStatus"]:
+                d_status = response["deliveryStatus"][0].split('-')[1]
+                if d_status == 'Delivery Pending':
+                    d_status = "Processing"
+                elif d_status == 'UnDelivered':
+                    d_status = "Failed"
+            else:
+                d_status = 'Failed'
+
+            sms_instance.status = d_status
             sms_instance.api_response = response
             sms_instance.save()
             ########### End Check SMS Delivery Status here ###########
 
-            if int(response['serverResponseCode']) != 9000:
+            server_failure_codes = [9011, 9012, 9015, 9099]
+
+            if serverResponseCode != 9000:
                 sms_instance.status = "Failed"
-                sms_instance.failure_reason = f"Error Code: {response['serverResponseCode']} | Message: {response['serverResponseMessage']}"
+                sms_instance.failure_reason = f"Error Code: {serverResponseCode} | Message: {serverResponseMessage}"
             else:
                 check_counter = 0
-                while int(response['Status']) == 0 or int(response['Status']) == 2:
+                while serverResponseCode in server_failure_codes:
                     if check_counter >= 5:
                         break
                     response = getDeliveryStatus(sms_instance.sender_id, sms_instance.receiver, sms_instance.shoot_id)
+                    serverResponseCode = int(response['serverResponseCode'])
+                    serverResponseMessage = response['serverResponseMessage']
+
+                    if response["deliveryStatus"]:
+                        d_status = response["deliveryStatus"][0].split('-')[1]
+                        if d_status == 'Delivery Pending':
+                            d_status = "Processing"
+                        elif d_status == 'UnDelivered':
+                            d_status = "Failed"
+                    else:
+                        d_status = 'Failed'
+
                     check_counter += 1
                     time.sleep(10)
                 sms_instance.api_response = response
                 sms_instance.save()
-                if int(response['serverResponseCode']) != 9000:
+                if serverResponseCode != 9000:
                     sms_instance.status = "Failed"
-                    sms_instance.failure_reason = f"Error Code: {response['serverResponseCode']} | Message: {response['serverResponseMessage']}"
+                    sms_instance.failure_reason = f"Error Code: {serverResponseCode} | Message: {serverResponseMessage}"
                 else:
-                    if int(response['Status']) == 0:
-                        sms_instance.status = "Submitted"
-                    elif int(response['Status']) == 1:
-                        # Successfully transmitted
-                        sms_instance.status = "Delivered"
-                    elif int(response['Status']) == 2:
-                        sms_instance.status = "Processing"
+                    sms_instance.status = d_status
                     sms_instance.save()
         SMSQueueHandler.objects.filter(sms_id=json_payload['sms_id'], user_id=json_payload['user_id']).delete()
     except Exception:

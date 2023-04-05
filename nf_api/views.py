@@ -1421,16 +1421,19 @@ def getDeliveryStatusAPI(request):
 
 @api_view(['GET'])
 def testAPI(request):
-    deliveryStatus = getDeliveryStatus("01894784405", "8801839841234", "0cfd3fe4-7540-4828-9723-296ca6c21feb")
+    response = getDeliveryStatus("01894784405", "8801839841234", "0cfd3fe4-7540-4828-9723-296ca6c21feb")
     message = "API call received successfully!!!"
-    serverResponseCode = deliveryStatus["serverResponseCode"]
-    serverResponseMessage = deliveryStatus["serverResponseMessage"]
-    ds = deliveryStatus["deliveryStatus"]
-    if ds:
-        d_status = [ds[0]]
+    serverResponseCode = response["serverResponseCode"]
+    serverResponseMessage = response["serverResponseMessage"]
+    if response["deliveryStatus"]:
+        d_status = response["deliveryStatus"][0].split('-')[1]
+        if d_status == 'Delivery Pending':
+            d_status = "Processing"
+        elif d_status == 'UnDelivered':
+            d_status = "Failed"
     else:
         d_status = 'Failed'
-    return Response(dict(code=status.HTTP_200_OK, message=message, deliveryStatus=deliveryStatus,
+    return Response(dict(code=status.HTTP_200_OK, message=message, deliveryStatus=response,
                          serverResponseCode=serverResponseCode, serverResponseMessage=serverResponseMessage,
                          d_status=d_status))
 
