@@ -1427,12 +1427,12 @@ def testAPI(request):
     serverResponseMessage = deliveryStatus["serverResponseMessage"]
     ds = deliveryStatus["deliveryStatus"]
     if ds:
-        status = [ds[0]]
+        d_status = [ds[0]]
     else:
-        status = 'Failed'
+        d_status = 'Failed'
     return Response(dict(code=status.HTTP_200_OK, message=message, deliveryStatus=deliveryStatus,
                          serverResponseCode=serverResponseCode, serverResponseMessage=serverResponseMessage,
-                         status=status))
+                         d_status=d_status))
 
 
 @api_view(['GET'])
