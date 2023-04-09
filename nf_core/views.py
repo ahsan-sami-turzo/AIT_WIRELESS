@@ -1697,7 +1697,7 @@ def gatewayTrafficReportSSR(request):
 
     gateway_providers = settings.GW_PROVIDERS
 
-    sms_report = SMSGatewayReport.objects.all().order_by('-created_at')
+    sms_report = SMSHistory.objects.all().order_by('-created_at')
 
     if filter_from != "":
         filter_from = datetime.strptime(filter_from, "%Y-%m-%d").astimezone()
@@ -1736,7 +1736,7 @@ def gatewayTrafficReportSSR(request):
         sms_report = sms_report.order_by(f'{sorting_keys[sorting_column]}')
     else:
         sms_report = sms_report.order_by(f'-{sorting_keys[sorting_column]}')
-
+    
     sms_report = sms_report[startLimit:endLimit]
     for key, row_data in enumerate(sms_report):
         user_instance = row_data.user

@@ -277,7 +277,7 @@ class SMSQueueHandler(models.Model):
 
 # BTRC GATEWAY TRAFFIC REPORT
 # Date: 09-04-2023
-class SMSGatewayReport(PostgresPartitionedModel):
+class SMSGatewayReport(models.Model):
     """
     BTRC Gateway Traffic Report
 
@@ -290,10 +290,12 @@ class SMSGatewayReport(PostgresPartitionedModel):
 
     sms_category = masking/non-masking
     """
-
-    # user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_sms_history')
+    # UserInfo
+    user = models.ForeignKey(UserInfo, on_delete=models.CASCADE, related_name='user_sms_history')
     receiver = models.CharField(max_length=200)
     sender_id = models.CharField(max_length=200, null=True, blank=True)
     operator_name = models.CharField(max_length=200, null=True, blank=True)
     sms_category = models.CharField(max_length=200, null=True)
     status = models.CharField(max_length=200, default='Delivered')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
