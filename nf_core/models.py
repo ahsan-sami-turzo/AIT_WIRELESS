@@ -191,7 +191,8 @@ class SMSHistory(PostgresPartitionedModel):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        indexes = [models.Index(fields=['user', 'receiver', 'sender_id', 'status', 'scheduled']), models.Index(fields=['created_at'])]
+        indexes = [models.Index(fields=['user', 'receiver', 'sender_id', 'status', 'scheduled']),
+                   models.Index(fields=['created_at'])]
 
     class PartitioningMeta:
         method = PostgresPartitioningMethod.RANGE
@@ -272,3 +273,27 @@ class SMSQueueHandler(models.Model):
     queue = models.CharField(max_length=200)
     operator_logo = models.CharField(max_length=200, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+# BTRC GATEWAY TRAFFIC REPORT
+# Date: 09-04-2023
+class SMSGatewayReport(PostgresPartitionedModel):
+    """
+    BTRC Gateway Traffic Report
+
+    Default "Delivered"
+    On submit "Submitted"
+    On processing "Processing"
+    On delivery complete "Delivered"
+    On failure "Failed"
+    On Scheduled "Scheduled"
+
+    sms_category = masking/non-masking
+    """
+
+    # user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_sms_history')
+    receiver = models.CharField(max_length=200)
+    sender_id = models.CharField(max_length=200, null=True, blank=True)
+    operator_name = models.CharField(max_length=200, null=True, blank=True)
+    sms_category = models.CharField(max_length=200, null=True)
+    status = models.CharField(max_length=200, default='Delivered')

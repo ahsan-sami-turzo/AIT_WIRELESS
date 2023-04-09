@@ -81,7 +81,7 @@
             $("#filter_status").val('{{ request.GET.status }}').trigger('change');
         });
 
-        let ssr_url = '{% url 'nf.gateway.traffic.report.ssr' %}' + '&from={{ request.GET.from }}' + '&to={{ request.GET.to }}' + '&status={{ request.GET.status }}';
+        let ssr_url = '{% url 'nf.gateway.traffic.report.ssr' %}' + '?status={{ request.GET.status }}' + '&from={{ request.GET.from }}' + '&to={{ request.GET.to }}';
         let default_order = [[0, 'desc']];
         let column_definition = [
             {
@@ -106,6 +106,10 @@
                 targets: 7, className: "text-center"
             }
         ]
+
+
+
+
 
 
 

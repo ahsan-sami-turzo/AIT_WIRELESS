@@ -18,6 +18,7 @@ from .forms import *
 from .helper import *
 
 from datetime import datetime, timedelta
+from pprint import pprint
 
 
 def seedData(request):
@@ -1660,20 +1661,17 @@ def deliveryFailedReport(request):
     return render(request, 'report/delivery_failed_report.html', context)
 
 
+# BTRC GATEWAY TRAFFIC REPORT
+# Date: 09-04-2023
 @login_required
 def gatewayTrafficReport(request):
     """
     Generate a report for gateway traffic (BTRC)
     """
-    user_list = User.objects.all().order_by('first_name')
-    user_info = None
-    if 'user' in request.GET and request.GET['user'] != "":
-        user_info = UserInfo.objects.get(user_id=request.GET['user'])
+
     context = {
         'app_name': settings.APP_NAME,
         'page_title': "BTRC Gateway Traffic Report",
-        'user_list': user_list,
-        'user_info': user_info
     }
     return render(request, 'report/gateway_traffic_report.html', context)
 
@@ -1684,6 +1682,7 @@ def gatewayTrafficReportSSR(request):
     """
     SSR Rendering for Datatable
     """
+
     search_value = request.POST['search[value]'].strip()
     startLimit = int(request.POST['start'])
     endLimit = startLimit + int(request.POST['length'])
@@ -1692,25 +1691,13 @@ def gatewayTrafficReportSSR(request):
     sorting_column = int(request.POST['order[0][column]'].strip())
     sorting_dir = request.POST['order[0][dir]'].strip()
 
-    filter_user = request.GET['user']
     filter_from = request.GET['from']
     filter_to = request.GET['to']
-    filter_status = ""
-    filter_operator = ""
-    filter_sms_type = ""
-    if 'status' in request.GET:
-        filter_status = request.GET['status']
+    filter_status = request.GET['status']
 
-    if 'operator' in request.GET:
-        filter_operator = request.GET['operator']
+    gateway_providers = settings.GW_PROVIDERS
 
-    if 'sms_type' in request.GET:
-        filter_sms_type = request.GET['sms_type']
-
-    sms_report = SMSHistory.objects.all().order_by('-created_at')
-
-    if filter_user != "":
-        sms_report = sms_report.filter(user_id=filter_user)
+    sms_report = SMSGatewayReport.objects.all().order_by('-created_at')
 
     if filter_from != "":
         filter_from = datetime.strptime(filter_from, "%Y-%m-%d").astimezone()
@@ -1725,12 +1712,6 @@ def gatewayTrafficReportSSR(request):
             sms_report = sms_report.filter(scheduled=True)
         else:
             sms_report = sms_report.filter(status=filter_status)
-
-    if filter_operator != "":
-        sms_report = sms_report.filter(operator_name=filter_operator)
-
-    if filter_sms_type != "":
-        sms_report = sms_report.filter(sms_category=filter_sms_type)
 
     # Count the total length
     totalLength = sms_report.count()
@@ -1797,4 +1778,5 @@ def gatewayTrafficReportSSR(request):
         "recordsFiltered": filteredLength,
         "data": data_array
     }
+
     return JsonResponse(response, safe=False)

@@ -210,3 +210,23 @@ INFOZILLION_PASSWORD = env('INFOZILLION_PASSWORD')
 INFOZILLION_APIKEY = env('INFOZILLION_APIKEY')
 INFOZILLION_URL = env('INFOZILLION_BASE_URL')
 INFOZILLION_CLI = env('INFOZILLION_CLI')
+
+GW_PROVIDERS = {
+    '013': 'Grameenphone',
+    '017': 'Grameenphone',
+    '014': 'Banglalink',
+    '019': 'Banglalink',
+    '015': 'TeleTalk',
+    '016': 'Robi',
+    '018': 'Robi',
+
+    '035': 'BanglaPhone',
+    '036': 'Telebarta',
+    '037': 'NationalPhone',
+    '038': 'PeoplesTel',
+    '044': 'RanksTel',
+    '060': 'BijoyPhone',
+    '064': 'Onetel',
+    '066': 'DhakaPhone',
+    '042': 'ShebaPhone',
+}
