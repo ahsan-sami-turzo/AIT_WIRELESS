@@ -61,4 +61,5 @@ urlpatterns = [
     # BTRC GATEWAY TRAFFIC REPORT
     # Date: 09-04-2023
     path('report/gateway-traffic-report', gatewayTrafficReport, name='nf.gateway.traffic.report'),
+    path('local-api/gateway-traffic-report/ssr', gatewayTrafficReportSSR, name='nf.gateway.traffic.report.ssr'),
 ]
