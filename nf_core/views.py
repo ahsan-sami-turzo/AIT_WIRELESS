@@ -572,14 +572,17 @@ def addNewUser(request):
                         user_info_instance.expiry_date = exp_date
                         user_info_instance.save()
 
-                        writeActivityLog(request, f"Fund {settings.APP_CURRENCY} {round(float(5), 2)} has been added to client {user_info_instance.user.email} balance.")
-                        writeActivityLog(request, f"Client ({user_info_instance.user.email}) => Old Balance: {user_info_instance.credit} & New Balance: {new_balance}")
+                        writeActivityLog(request,
+                                         f"Fund {settings.APP_CURRENCY} {round(float(5), 2)} has been added to client {user_info_instance.user.email} balance.")
+                        writeActivityLog(request,
+                                         f"Client ({user_info_instance.user.email}) => Old Balance: {user_info_instance.credit} & New Balance: {new_balance}")
 
                         UserConfig.objects.create(user=user_instance)
 
                         writeActivityLog(request, f"User registration completed successfully. Email: {email}")
                         messages.success(request, 'User account has been created successfully.')
-                        return HttpResponseRedirect(reverse('nf.user.profile.update', kwargs={'instance_id': user_instance.id}))
+                        return HttpResponseRedirect(
+                            reverse('nf.user.profile.update', kwargs={'instance_id': user_instance.id}))
     context = {
         'app_name': settings.APP_NAME,
         'page_title': "Add User",
@@ -624,8 +627,10 @@ def userFundDebitCredit(request):
         user_info_instance.expiry_date = exp_date
         user_info_instance.save()
 
-        writeActivityLog(request, f"Fund {settings.APP_CURRENCY} {round(float(trx_amount), 2)} has been added to client {user_info_instance.user.email} balance.")
-        writeActivityLog(request, f"Client ({user_info_instance.user.email}) => Old Balance: {user_info_instance.credit} & New Balance: {new_balance}")
+        writeActivityLog(request,
+                         f"Fund {settings.APP_CURRENCY} {round(float(trx_amount), 2)} has been added to client {user_info_instance.user.email} balance.")
+        writeActivityLog(request,
+                         f"Client ({user_info_instance.user.email}) => Old Balance: {user_info_instance.credit} & New Balance: {new_balance}")
 
         messages.success(request, "User fund has been updated successfully.")
     return HttpResponseRedirect(reverse('nf.user.management'))
@@ -852,7 +857,8 @@ def userRechargeReportSSR(request):
 
         filteredLength = recharge_report.count()
 
-    sorting_keys = ['id', '', 'created_at', 'trx_type', 'previous_balance', 'recharge_amount', 'new_balance', 'balance_expiry_date']
+    sorting_keys = ['id', '', 'created_at', 'trx_type', 'previous_balance', 'recharge_amount', 'new_balance',
+                    'balance_expiry_date']
     if sorting_dir == 'asc':
         recharge_report = recharge_report.order_by(f'{sorting_keys[sorting_column]}')
     else:
@@ -1098,7 +1104,8 @@ def userStatusToggle(request, instance_id):
     user_instance.is_active = not user_instance.is_active
     user_instance.save()
 
-    writeActivityLog(request, f'User ({user_instance.email}) status ({not user_instance.is_active} -> {user_instance.is_active}) updated successfully.')
+    writeActivityLog(request,
+                     f'User ({user_instance.email}) status ({not user_instance.is_active} -> {user_instance.is_active}) updated successfully.')
     messages.success(request, 'User status updated successfully.')
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
@@ -1467,7 +1474,8 @@ def dashboardStats(request):
     today_date = datetime.today().astimezone().strftime("%Y-%m-%d")
     today_date = datetime.strptime(today_date, "%Y-%m-%d").astimezone()
     tomorrow_date = today_date + timedelta(days=1)
-    total_sms_delivered_today = sms_instance.filter(status="Delivered", created_at__gte=today_date, created_at__lte=tomorrow_date).count()
+    total_sms_delivered_today = sms_instance.filter(status="Delivered", created_at__gte=today_date,
+                                                    created_at__lte=tomorrow_date).count()
     total_sms_cost = sms_instance.aggregate(Sum('sms_cost'))['sms_cost__sum']
     if total_sms_cost is None:
         total_sms_cost = 0
@@ -1504,7 +1512,8 @@ def weeklySMSGraph(request):
         query_to = query_from + timedelta(days=1)
 
         date_array.append(query_from.strftime("%d %b %Y"))
-        sms_count.append(SMSHistory.objects.filter(created_at__gte=query_from, created_at__lte=query_to, status="Delivered").count())
+        sms_count.append(
+            SMSHistory.objects.filter(created_at__gte=query_from, created_at__lte=query_to, status="Delivered").count())
 
         start_date = query_to
 
@@ -1555,10 +1564,12 @@ def telcoReport(request):
     else:
         to_date = datetime.now().astimezone()
         from_date = to_date - timedelta(days=7)
-        return HttpResponseRedirect(f"{reverse('nf.report.telco')}?from_date={from_date.date()}&to_date={to_date.date()}")
+        return HttpResponseRedirect(
+            f"{reverse('nf.report.telco')}?from_date={from_date.date()}&to_date={to_date.date()}")
 
     operator_names = ["Grameenphone", "Banglalink", "Teletalk", "Robi", "Airtel"]
-    telco_report = SMSHistory.objects.filter(created_at__range=[from_date, to_date], operator_name__in=operator_names, status="Delivered").values('operator_name').annotate(
+    telco_report = SMSHistory.objects.filter(created_at__range=[from_date, to_date], operator_name__in=operator_names,
+                                             status="Delivered").values('operator_name').annotate(
         sms_count=Count('operator_name')).order_by('-sms_count')
 
     in_report = []
@@ -1647,3 +1658,21 @@ def deliveryFailedReport(request):
         'user_info': user_info
     }
     return render(request, 'report/delivery_failed_report.html', context)
+
+
+@login_required
+def gatewayTrafficReport(request):
+    """
+    Generate a report for gateway traffic (BTRC)
+    """
+    user_list = User.objects.all().order_by('first_name')
+    user_info = None
+    if 'user' in request.GET and request.GET['user'] != "":
+        user_info = UserInfo.objects.get(user_id=request.GET['user'])
+    context = {
+        'app_name': settings.APP_NAME,
+        'page_title': "BTRC Gateway Traffic Report",
+        'user_list': user_list,
+        'user_info': user_info
+    }
+    return render(request, 'report/gateway_traffic_report.html', context)

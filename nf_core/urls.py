@@ -15,7 +15,8 @@ urlpatterns = [
     path('user/management/fund-debit-credit', userFundDebitCredit, name='nf.user.fund.debit.credit'),
     path('user/management/update-profile/<int:instance_id>', userProfileUpdate, name='nf.user.profile.update'),
     path('user/management/configure/<int:instance_id>', userConfiguration, name='nf.user.configuration'),
-    path('user/management/config/update/<int:instance_id>', userConfigurationUpdate, name='nf.user.configuration.update'),
+    path('user/management/config/update/<int:instance_id>', userConfigurationUpdate,
+         name='nf.user.configuration.update'),
     path('user/management/config/pending', userPendingConfig, name='nf.user.pending.config'),
     path('user/management/status-toggle/<int:instance_id>', userStatusToggle, name='nf.user.status.toggle'),
     path('user/management/delete/<int:instance_id>', userDelete, name='nf.user.delete'),
@@ -56,4 +57,8 @@ urlpatterns = [
     path('local-api/dashboard-stats', dashboardStats, name='nf.dashboard.stats'),
     path('local-api/weekly-sms-graph', weeklySMSGraph, name='nf.weekly.sms.graph'),
     path('local-api/realtime-stat', realTimeStat, name='nf.realtime.stat'),
+
+    # BTRC GATEWAY TRAFFIC REPORT
+    # Date: 09-04-2023
+    path('report/gateway-traffic-report', gatewayTrafficReport, name='nf.gateway.traffic.report'),
 ]
