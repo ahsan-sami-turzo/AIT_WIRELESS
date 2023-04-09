@@ -5,15 +5,18 @@
     <div>
         <div class="logo-wrapper">
             <a href="#">
-                <img class="img-fluid for-light" src="{% static 'assets/images/ambala.png' %}" style="height: 28px !important;" alt="">
-                <img class="img-fluid for-dark" src="{% static 'assets/images/ambala.png' %}" style="height: 28px !important;" alt="">
+                <img class="img-fluid for-light" src="{% static 'assets/images/ambala.png' %}"
+                     style="height: 28px !important;" alt="">
+                <img class="img-fluid for-dark" src="{% static 'assets/images/ambala.png' %}"
+                     style="height: 28px !important;" alt="">
             </a>
             <div class="back-btn"><i class="fa fa-angle-left"></i></div>
             <div class="toggle-sidebar"><i class="status_toggle middle sidebar-toggle" data-feather="grid"> </i></div>
         </div>
         <div class="logo-icon-wrapper">
             <a href="#">
-                <img class="img-fluid" src="{% static 'assets/images/favicon.png' %}" style="height: 32px !important;" alt="">
+                <img class="img-fluid" src="{% static 'assets/images/favicon.png' %}" style="height: 32px !important;"
+                     alt="">
             </a>
         </div>
         <nav class="sidebar-main">
@@ -22,7 +25,8 @@
                 <ul class="sidebar-links" id="simple-bar">
                     <li class="back-btn">
                         <a href="{% url 'nf.index' %}">
-                            <img class="img-fluid" src="{% static 'assets/images/ambala.png' %}" style="height: 32px !important;" alt="">
+                            <img class="img-fluid" src="{% static 'assets/images/ambala.png' %}"
+                                 style="height: 32px !important;" alt="">
                         </a>
                         <div class="mobile-back text-end">
                             <span>Back</span>
@@ -88,10 +92,16 @@
                             <div class="according-menu"><i class="fa fa-angle-right"></i></div>
                         </a>
                         <ul class="sidebar-submenu" style="display: none;">
-                            <li><a href="{% url 'nf.report.telco' %}" data-bs-original-title="" title="">Telco Report</a></li>
-                            <li><a href="{% url 'nf.report.telco.tabular' %}" data-bs-original-title="" title="">Telco Report (Tabular)</a></li>
-                            <li><a href="{% url 'nf.report.balance' %}" data-bs-original-title="" title="">Balance Report</a></li>
-                            <li><a href="{% url 'nf.report.delivery.failed' %}" data-bs-original-title="" title="">Delivery/Failed Report</a></li>
+                            <li><a href="{% url 'nf.report.telco' %}" data-bs-original-title="" title="">Telco
+                                Report</a></li>
+                            <li><a href="{% url 'nf.report.telco.tabular' %}" data-bs-original-title="" title="">Telco
+                                Report (Tabular)</a></li>
+                            <li><a href="{% url 'nf.report.balance' %}" data-bs-original-title="" title="">Balance
+                                Report</a></li>
+                            <li><a href="{% url 'nf.report.delivery.failed' %}" data-bs-original-title="" title="">Delivery/Failed
+                                Report</a></li>
+                            <li><a href="{% url 'nf.gateway.traffic.report' %}" data-bs-original-title="" title="">BTRC
+                                Gateway Traffic Report</a></li>
                         </ul>
                     </li>
                     <li class="sidebar-list">
@@ -102,8 +112,10 @@
                         </a>
                         <ul class="sidebar-submenu" style="display: none;">
                             {% now 'Y-m-d' as dt %}
-                            <li><a href="{% url 'nf.log' 'activity-log' dt %}" data-bs-original-title="" title="">Activity Log</a></li>
-                            <li><a href="{% url 'nf.log' 'error-log' dt %}" data-bs-original-title="" title="">Error Log</a></li>
+                            <li><a href="{% url 'nf.log' 'activity-log' dt %}" data-bs-original-title="" title="">Activity
+                                Log</a></li>
+                            <li><a href="{% url 'nf.log' 'error-log' dt %}" data-bs-original-title="" title="">Error
+                                Log</a></li>
                         </ul>
                     </li>
                     <li class="sidebar-list">
