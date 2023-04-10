@@ -1465,8 +1465,8 @@ def testInfozAPILive(request):
 
 @api_view(['GET'])
 def updateDeliveryStatusAPI(request):
-    filter_from = "2023-04-06"
-    filter_to = "2023-04-06"
+    filter_from = "2023-04-04"
+    filter_to = "2023-04-09"
     filter_from = datetime.strptime(filter_from, "%Y-%m-%d").astimezone()
     filter_to = datetime.strptime(filter_to, "%Y-%m-%d").astimezone() + timedelta(days=1)
     # sms_report = (SMSHistory.objects
@@ -1477,6 +1477,8 @@ def updateDeliveryStatusAPI(request):
     #               )
 
     sms_report = (SMSHistory.objects
+                  .filter(created_at__gte=filter_from)
+                  .filter(created_at__lte=filter_to)
                   .filter(status="Delivered")
                   .values('user_id', 'sender_id', 'operator_name', 'sms_category')
                   .annotate(dcount=Count('id'))
@@ -1513,3 +1515,70 @@ def updateDeliveryStatusAPI(request):
             "status": d_status
         })
     return Response(dict(res=res))
+
+
+@api_view(['GET'])
+def getSMSHistory(request):
+    filter_from = "2023-04-06"
+    filter_to = "2023-04-06"
+    filter_from = datetime.strptime(filter_from, "%Y-%m-%d").astimezone()
+    filter_to = datetime.strptime(filter_to, "%Y-%m-%d").astimezone() + timedelta(days=1)
+    sms_report = list(SMSHistory.objects
+                      .all()
+                      .filter(created_at__gte=filter_from)
+                      .filter(created_at__lte=filter_to)
+                      .filter(status="Processing")
+                      .filter(operator_name="Airtel")
+                      # .filter(user_id__in=User.objects.filter(id=5))
+                      .values()
+                      )
+    data = []
+    for key, value in enumerate(sms_report):
+        user_info = list(UserInfo.objects.filter(user_id=value.get("user_id")).values())
+        for k, info in enumerate(user_info):
+            company_name = info.get("company_name")
+        data.append({
+            "sender_id": value.get("sender_id"),
+            "company_name": company_name
+        })
+
+    return Response(dict(res=data))
+
+
+@api_view(['GET'])
+def getUserSMSHistory(request):
+    filter_from = "2023-04-04"
+    filter_to = "2023-04-09"
+    filter_from = datetime.strptime(filter_from, "%Y-%m-%d").astimezone()
+    filter_to = datetime.strptime(filter_to, "%Y-%m-%d").astimezone() + timedelta(days=1)
+
+    sms_report = (SMSHistory.objects
+                  .all()
+                  .filter(created_at__gte=filter_from)
+                  .filter(created_at__lte=filter_to)
+                  .filter(status="Delivered")
+                  .values('user_id', 'sender_id', 'operator_name', 'sms_category')
+                  .annotate(count=Count('id'))
+                  .order_by('user_id')
+                  )
+
+    data = []
+    for key, value in enumerate(sms_report):
+        user_info = list(UserInfo.objects.filter(user_id=value.get("user_id")).values())
+        for k, info in enumerate(user_info):
+            company_name = info.get("company_name")
+
+        sender_id_prefix = value.get("sender_id")[0:3]
+        gateway_provider = settings.GW_PROVIDERS[sender_id_prefix]
+        data.append({
+            "user_id": value.get("user_id"),
+            "company_name": company_name,
+            "traffic_type": "SMS",
+            "sender_id": value.get("sender_id"),
+            "gateway_provider": gateway_provider,
+            "operator_name": value.get("operator_name"),
+            "sms_category": value.get("sms_category"),
+            "count": value.get("count")
+        })
+
+    return Response(dict(res=list(data)))

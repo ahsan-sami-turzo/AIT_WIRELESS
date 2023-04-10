@@ -1683,21 +1683,11 @@ def gatewayTrafficReportSSR(request):
     SSR Rendering for Datatable
     """
 
-    search_value = request.POST['search[value]'].strip()
-    startLimit = int(request.POST['start'])
-    endLimit = startLimit + int(request.POST['length'])
-    data_array = []
-
-    sorting_column = int(request.POST['order[0][column]'].strip())
-    sorting_dir = request.POST['order[0][dir]'].strip()
-
     filter_from = request.GET['from']
     filter_to = request.GET['to']
     filter_status = request.GET['status']
 
-    gateway_providers = settings.GW_PROVIDERS
-
-    sms_report = SMSHistory.objects.all().order_by('-created_at')
+    sms_report = SMSHistory.objects.all()
 
     if filter_from != "":
         filter_from = datetime.strptime(filter_from, "%Y-%m-%d").astimezone()
@@ -1713,69 +1703,36 @@ def gatewayTrafficReportSSR(request):
         else:
             sms_report = sms_report.filter(status=filter_status)
 
-    # Count the total length
-    totalLength = sms_report.count()
-    filteredLength = totalLength
+    sms_report = (sms_report
+                  .values('user_id', 'sender_id', 'operator_name', 'sms_category')
+                  .annotate(count=Count('id'))
+                  .order_by('user_id')
+                  )
 
-    if search_value != "" or search_value is not None:
-        sms_report = sms_report.filter(
-            Q(user__first_name__icontains=search_value) |
-            Q(user__last_name__icontains=search_value) |
-            Q(user__email__icontains=search_value) |
-            Q(user__username__icontains=search_value) |
-            Q(uid__icontains=search_value) |
-            Q(receiver__icontains=search_value) |
-            Q(sender_id__icontains=search_value) |
-            Q(sms_body__icontains=search_value) |
-            Q(status__icontains=search_value))
+    sorting_keys = ["user_id", "company_name", "traffic_type", "sender_id", "gateway_provider", "operator_name",
+                    "sms_category", "count"]
 
-        filteredLength = sms_report.count()
+    data_array = []
+    for key, value in enumerate(sms_report):
+        user_info = list(UserInfo.objects.filter(user_id=value.get("user_id")).values())
+        for k, info in enumerate(user_info):
+            company_name = info.get("company_name")
 
-    sorting_keys = ['id', '', 'receiver', 'created_at', 'sender_id', 'sms_cost', 'sms_body', 'status']
-    if sorting_dir == 'asc':
-        sms_report = sms_report.order_by(f'{sorting_keys[sorting_column]}')
-    else:
-        sms_report = sms_report.order_by(f'-{sorting_keys[sorting_column]}')
-    
-    sms_report = sms_report[startLimit:endLimit]
-    for key, row_data in enumerate(sms_report):
-        user_instance = row_data.user
-        user_info = f"""<small>{user_instance.first_name} {user_instance.last_name}<br>{user_instance.email}</small>"""
-        receiver = f"""<small>{row_data.receiver}<br>{row_data.operator_name}</small>"""
-        timestamp = f"""<small>{row_data.created_at.astimezone().strftime("%d %b %Y<br>%I:%M:%S %p")}</small>"""
-        sender_id = f"""<small>{row_data.sender_id}<br>{row_data.sms_category}</small>"""
-        sms_cost = f"""<small>{row_data.sms_count} @ {row_data.sms_rate}<br>{settings.APP_CURRENCY} {row_data.sms_cost}</small>"""
-        sms_content = str(row_data.sms_body).replace("\r", "").replace("\n", "<br>")
-        sms_content = f"""<small>{sms_content}</small>"""
-
-        sms_badge = "badge-dark"
-        if row_data.status == "Delivered":
-            sms_badge = "badge-success"
-        elif row_data.status == "Failed":
-            sms_badge = "badge-danger"
-        elif row_data.status == "Pending":
-            sms_badge = "badge-warning"
-
-        sch_badge = ""
-        if row_data.scheduled:
-            sch_badge = f"""<span class="badge badge-dark">Scheduled at {row_data.scheduled_time.astimezone().strftime("%Y-%m-%d %H:%M")}</span><br>"""
-
-        sms_status = f"""{sch_badge}<label class="badge {sms_badge}">{row_data.status}</label>"""
+        sender_id_prefix = value.get("sender_id")[0:3]
+        gateway_provider = settings.GW_PROVIDERS[sender_id_prefix]
 
         data_array.append([
-            row_data.id,
-            user_info,
-            receiver,
-            timestamp,
-            sender_id,
-            sms_cost,
-            sms_content,
-            sms_status
+            value.get("user_id"),
+            company_name,
+            "SMS",
+            value.get("sender_id"),
+            gateway_provider,
+            value.get("operator_name"),
+            value.get("sms_category"),
+            value.get("count")
         ])
     response = {
         "draw": request.POST['draw'],
-        "recordsTotal": totalLength,
-        "recordsFiltered": filteredLength,
         "data": data_array
     }
 
