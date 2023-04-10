@@ -109,12 +109,12 @@ def updateSMSStatus(self, *args, **kwargs):
 
             if response["deliveryStatus"]:
                 d_status = response["deliveryStatus"][0].split('-')[1]
-                if d_status == 'Delivery Pending':
+                if d_status == "Delivery Pending":
                     d_status = "Processing"
-                elif d_status == 'UnDelivered':
+                elif d_status == "UnDelivered":
                     d_status = "Failed"
             else:
-                d_status = 'Failed'
+                d_status = "Failed"
 
             sms_instance.status = d_status
             sms_instance.api_response = response
@@ -128,6 +128,7 @@ def updateSMSStatus(self, *args, **kwargs):
                 sms_instance.failure_reason = f"Error Code: {serverResponseCode} | Message: {serverResponseMessage}"
             else:
                 check_counter = 0
+                # while check_counter < 5:
                 while serverResponseCode in server_failure_codes:
                     if check_counter >= 5:
                         break
@@ -137,15 +138,19 @@ def updateSMSStatus(self, *args, **kwargs):
 
                     if response["deliveryStatus"]:
                         d_status = response["deliveryStatus"][0].split('-')[1]
-                        if d_status == 'Delivery Pending':
+                        if d_status == "Delivered"
+                            break;
+                        elif d_status == "Delivery Pending":
                             d_status = "Processing"
-                        elif d_status == 'UnDelivered':
+                        elif d_status == "UnDelivered":
                             d_status = "Failed"
                     else:
-                        d_status = 'Failed'
+                        d_status = "Failed"
 
                     check_counter += 1
                     time.sleep(10)
+
+                sms_instance.status = d_status
                 sms_instance.api_response = response
                 sms_instance.save()
                 if serverResponseCode != 9000:
