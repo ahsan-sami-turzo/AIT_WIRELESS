@@ -1673,7 +1673,7 @@ def gatewayTrafficReport(request):
     context = {
         'app_name': settings.APP_NAME,
         'page_title': "BTRC Gateway Traffic Report",
-        'user_info': UserInfo.objects.all()
+        'user_info': UserInfo.objects.all().order_by('id')
     }
     return render(request, 'report/gateway_traffic_report.html', context)
 
@@ -1689,6 +1689,14 @@ def gatewayTrafficReportSSR(request):
     filter_to = request.GET['to']
     filter_status = request.GET['status']
     filter_user = request.GET['user']
+
+    if filter_from == "" and filter_to == "" and filter_status == "" and filter_user == "":
+        return JsonResponse({
+            "draw": request.POST['draw'],
+            "data": [],
+            "recordsTotal": 0,
+            "recordsFiltered": 0,
+        })
 
     search_value = request.POST['search[value]'].strip()
     startLimit = int(request.POST['start'])
@@ -1715,18 +1723,6 @@ def gatewayTrafficReportSSR(request):
     if filter_user != "":
         sms_report = sms_report.filter(user_id=filter_user)
 
-    if search_value != "" or search_value is not None:
-        sms_report = sms_report.filter(
-            Q(user__first_name__icontains=search_value) |
-            Q(user__last_name__icontains=search_value) |
-            Q(user__email__icontains=search_value) |
-            Q(user__username__icontains=search_value) |
-            Q(uid__icontains=search_value) |
-            Q(receiver__icontains=search_value) |
-            Q(sender_id__icontains=search_value) |
-            Q(sms_body__icontains=search_value) |
-            Q(status__icontains=search_value))
-
     sms_report = (sms_report
                   .values('user_id', 'sender_id', 'operator_name', 'sms_category')
                   .annotate(count=Count('id'))
@@ -1741,16 +1737,16 @@ def gatewayTrafficReportSSR(request):
             company_name = info.get("company_name")
 
         sender_id_prefix = value.get("sender_id")[0:3]
-        gateway_provider = settings.GW_PROVIDERS[sender_id_prefix]
+        gateway_provider = "" if sender_id_prefix == "880" else settings.GW_PROVIDERS[sender_id_prefix]
 
         data_array.append([
             key + 1,
             company_name,
             "SMS",
             value.get("sender_id"),
+            value.get("sms_category"),
             gateway_provider,
             value.get("operator_name"),
-            value.get("sms_category"),
             value.get("count")
         ])
 
@@ -1758,6 +1754,20 @@ def gatewayTrafficReportSSR(request):
         data_array = sorted(data_array, key=itemgetter(sorting_column), reverse=True)
     else:
         data_array = sorted(data_array, key=itemgetter(sorting_column), reverse=False)
+
+    totalLength = len(data_array)
+
+    # if search_value != "" or search_value is not None:
+    #     sms_report = sms_report.filter(
+    #         Q(user__first_name__icontains=search_value) |
+    #         Q(user__last_name__icontains=search_value) |
+    #         Q(user__email__icontains=search_value) |
+    #         Q(user__username__icontains=search_value) |
+    #         Q(uid__icontains=search_value) |
+    #         Q(receiver__icontains=search_value) |
+    #         Q(sender_id__icontains=search_value) |
+    #         Q(sms_body__icontains=search_value) |
+    #         Q(status__icontains=search_value))
 
     response = {
         "draw": request.POST['draw'],
