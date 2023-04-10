@@ -22,6 +22,15 @@
                         <form>
                             <div class="row">
 
+                                <div class="col-12 col-lg-3 mb-2">
+                                    <select class="form-control js-example-basic-single" name="user" id="filter_user">
+                                        <option value="">Select user account</option>
+                                        {% for user in user_info %}
+                                        <option value="{{ user.user_id }}">{{ user.company_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
                                 <div class="col-12 col-lg-2 mb-2">
                                     <input type="date" class="form-control" name="from" placeholder="From Date"
                                            value="{{ request.GET.from }}">
@@ -78,17 +87,21 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
         $(document).ready(function () {
+            $("#filter_user").val('{{ request.GET.user }}').trigger('change');
             $("#filter_status").val('{{ request.GET.status }}').trigger('change');
         });
 
-        let ssr_url = '{% url 'nf.gateway.traffic.report.ssr' %}' + '?status={{ request.GET.status }}' + '&from={{ request.GET.from }}' + '&to={{ request.GET.to }}';
-        let default_order = [[0, 'desc']];
+        let ssr_url = '{% url 'nf.gateway.traffic.report.ssr' %}' + '?user={{ request.GET.user }}' + '&status={{ request.GET.status }}' + '&from={{ request.GET.from }}' + '&to={{ request.GET.to }}';
+        let default_order = [[0, 'asc']];
         let column_definition = [
             {
-                targets: 1, orderable: false
+                targets: 0, orderable: false
             },
             {
-                targets: 2, className: "text-center"
+                targets: 1, className: "text-left"
+            },
+            {
+                targets: 2, className: "text-left"
             },
             {
                 targets: 3, className: "text-center"
@@ -97,7 +110,7 @@
                 targets: 4, className: "text-center"
             },
             {
-                targets: 5, className: "text-center"
+                targets: 5, className: "text-left"
             },
             {
                 targets: 6, className: "text-center"
@@ -106,6 +119,13 @@
                 targets: 7, className: "text-center"
             }
         ]
+
+
+
+
+
+
+
 
 
 

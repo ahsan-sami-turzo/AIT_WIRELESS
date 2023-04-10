@@ -19,6 +19,7 @@ from .helper import *
 
 from datetime import datetime, timedelta
 from pprint import pprint
+from operator import itemgetter
 
 
 def seedData(request):
@@ -1672,6 +1673,7 @@ def gatewayTrafficReport(request):
     context = {
         'app_name': settings.APP_NAME,
         'page_title': "BTRC Gateway Traffic Report",
+        'user_info': UserInfo.objects.all()
     }
     return render(request, 'report/gateway_traffic_report.html', context)
 
@@ -1686,6 +1688,13 @@ def gatewayTrafficReportSSR(request):
     filter_from = request.GET['from']
     filter_to = request.GET['to']
     filter_status = request.GET['status']
+    filter_user = request.GET['user']
+
+    search_value = request.POST['search[value]'].strip()
+    startLimit = int(request.POST['start'])
+    endLimit = startLimit + int(request.POST['length'])
+    sorting_column = int(request.POST['order[0][column]'].strip())
+    sorting_dir = request.POST['order[0][dir]'].strip()
 
     sms_report = SMSHistory.objects.all()
 
@@ -1703,16 +1712,29 @@ def gatewayTrafficReportSSR(request):
         else:
             sms_report = sms_report.filter(status=filter_status)
 
+    if filter_user != "":
+        sms_report = sms_report.filter(user_id=filter_user)
+
+    if search_value != "" or search_value is not None:
+        sms_report = sms_report.filter(
+            Q(user__first_name__icontains=search_value) |
+            Q(user__last_name__icontains=search_value) |
+            Q(user__email__icontains=search_value) |
+            Q(user__username__icontains=search_value) |
+            Q(uid__icontains=search_value) |
+            Q(receiver__icontains=search_value) |
+            Q(sender_id__icontains=search_value) |
+            Q(sms_body__icontains=search_value) |
+            Q(status__icontains=search_value))
+
     sms_report = (sms_report
                   .values('user_id', 'sender_id', 'operator_name', 'sms_category')
                   .annotate(count=Count('id'))
                   .order_by('user_id')
                   )
 
-    sorting_keys = ["user_id", "company_name", "traffic_type", "sender_id", "gateway_provider", "operator_name",
-                    "sms_category", "count"]
-
     data_array = []
+    sms_report = sms_report[startLimit:endLimit]
     for key, value in enumerate(sms_report):
         user_info = list(UserInfo.objects.filter(user_id=value.get("user_id")).values())
         for k, info in enumerate(user_info):
@@ -1722,7 +1744,7 @@ def gatewayTrafficReportSSR(request):
         gateway_provider = settings.GW_PROVIDERS[sender_id_prefix]
 
         data_array.append([
-            value.get("user_id"),
+            key + 1,
             company_name,
             "SMS",
             value.get("sender_id"),
@@ -1731,9 +1753,17 @@ def gatewayTrafficReportSSR(request):
             value.get("sms_category"),
             value.get("count")
         ])
+
+    if sorting_dir == 'desc':
+        data_array = sorted(data_array, key=itemgetter(sorting_column), reverse=True)
+    else:
+        data_array = sorted(data_array, key=itemgetter(sorting_column), reverse=False)
+
     response = {
         "draw": request.POST['draw'],
-        "data": data_array
+        "data": data_array,
+        "recordsTotal": totalLength,
+        "recordsFiltered": len(data_array),
     }
 
     return JsonResponse(response, safe=False)
