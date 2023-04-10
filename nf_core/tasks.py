@@ -128,19 +128,17 @@ def updateSMSStatus(self, *args, **kwargs):
                 sms_instance.failure_reason = f"Error Code: {serverResponseCode} | Message: {serverResponseMessage}"
             else:
                 check_counter = 0
-                # while check_counter < 5:
-                while serverResponseCode in server_failure_codes:
-                    if check_counter >= 5:
-                        break
+                # while serverResponseCode in server_failure_codes:
+                #     if check_counter >= 5:
+                #         break
+                while check_counter < 5:
                     response = getDeliveryStatus(sms_instance.sender_id, sms_instance.receiver, sms_instance.shoot_id)
                     serverResponseCode = int(response['serverResponseCode'])
                     serverResponseMessage = response['serverResponseMessage']
 
                     if response["deliveryStatus"]:
                         d_status = response["deliveryStatus"][0].split('-')[1]
-                        if d_status == "Delivered"
-                            break;
-                        elif d_status == "Delivery Pending":
+                        if d_status == "Delivery Pending":
                             d_status = "Processing"
                         elif d_status == "UnDelivered":
                             d_status = "Failed"
@@ -149,7 +147,6 @@ def updateSMSStatus(self, *args, **kwargs):
 
                     check_counter += 1
                     time.sleep(10)
-
                 sms_instance.status = d_status
                 sms_instance.api_response = response
                 sms_instance.save()
