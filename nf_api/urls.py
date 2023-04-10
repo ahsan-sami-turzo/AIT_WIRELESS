@@ -56,4 +56,6 @@ urlpatterns = [
 
     path('v1/client/get-dashboard-summary', getDashboardSummary),
     path('v1/client/get-dashboard-graph', getDashboardGraph),
+
+    path('v1/client/test/update-delivery-status', updateDeliveryStatusAPI),
 ]

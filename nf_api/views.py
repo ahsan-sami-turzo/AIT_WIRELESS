@@ -21,6 +21,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from Notifier.celery import app
 from nf_core.helper import *
 from .serializers import *
+from django.http import JsonResponse
 
 
 @api_view(['POST'])
@@ -1460,3 +1461,42 @@ def testInfozAPILive(request):
         return Response({"response": response})
     except Exception as e:
         return (e)
+
+
+@api_view(['GET'])
+def updateDeliveryStatusAPI(request):
+    filter_from = "2023-04-06"
+    filter_to = "2023-04-06"
+    filter_from = datetime.strptime(filter_from, "%Y-%m-%d").astimezone()
+    filter_to = datetime.strptime(filter_to, "%Y-%m-%d").astimezone() + timedelta(days=1)
+    sms_report = SMSHistory.objects.filter(created_at__gte=filter_from).filter(
+        created_at__lte=filter_to).filter(status="Processing").filter(operator_name="Airtel").values()
+    # return Response(dict(res=len(list(sms_report))))
+    res = []
+    for key, row_data in enumerate(sms_report):
+        url = settings.INFOZILLION_DELIVERYSTATUS_URL
+        payload = {
+            "username": settings.INFOZILLION_USERNAME,
+            "password": settings.INFOZILLION_PASSWORD,
+            "apiKey": settings.INFOZILLION_APIKEY,
+            "billMsisdn": row_data.get("sender_id"),
+            "msisdnList": [row_data.get("receiver")],
+            "serverReference": row_data.get("shoot_id")
+        }
+        header = {"Content-Type": "application/json"}
+        response = requests.post(url, data=json.dumps(payload), headers=header).json()
+        if response["deliveryStatus"]:
+            d_status = response["deliveryStatus"][0].split('-')[1]
+            if d_status == "Delivery Pending":
+                d_status = "Processing"
+            elif d_status == "UnDelivered":
+                d_status = "Failed"
+        else:
+            d_status = "Failed"
+        # update sms history
+        SMSHistory.objects.filter(shoot_id=row_data.get("shoot_id")).update(status=d_status)
+        res.append({
+            "shoot_id": row_data.get("shoot_id"),
+            "status": d_status
+        })
+    return Response(dict(res=res))
