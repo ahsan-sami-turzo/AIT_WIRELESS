@@ -72,3 +72,10 @@ def updateSMSStatus_05042023(self, *args, **kwargs):
         SMSQueueHandler.objects.filter(sms_id=json_payload['sms_id'], user_id=json_payload['user_id']).delete()
     except Exception:
         self.retry()
+
+
+== SMS SERVICE QUEUE COMMANDS ==
+cd /public_html/microfinplus.com/smsservice
+scl enable ea-php74 bash
+nohup php artisan queue:work --daemon &
+ps xw

@@ -7,7 +7,8 @@ from datetime import timedelta, datetime
 from urllib.parse import unquote_plus
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Count
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, authentication_classes, permission_classes, parser_classes
@@ -21,7 +22,6 @@ from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from Notifier.celery import app
 from nf_core.helper import *
 from .serializers import *
-from django.http import JsonResponse
 
 
 @api_view(['POST'])
@@ -1469,9 +1469,22 @@ def updateDeliveryStatusAPI(request):
     filter_to = "2023-04-06"
     filter_from = datetime.strptime(filter_from, "%Y-%m-%d").astimezone()
     filter_to = datetime.strptime(filter_to, "%Y-%m-%d").astimezone() + timedelta(days=1)
-    sms_report = SMSHistory.objects.filter(created_at__gte=filter_from).filter(
-        created_at__lte=filter_to).filter(status="Processing").filter(operator_name="Airtel").values()
-    # return Response(dict(res=len(list(sms_report))))
+    # sms_report = (SMSHistory.objects
+    #               .filter(created_at__gte=filter_from)
+    #               .filter(created_at__lte=filter_to)
+    #               .filter(status="Processing")
+    #               .filter(operator_name="Banglalink").values()
+    #               )
+
+    sms_report = (SMSHistory.objects
+                  .filter(status="Delivered")
+                  .values('user_id', 'sender_id', 'operator_name', 'sms_category')
+                  .annotate(dcount=Count('id'))
+                  .order_by('user_id')
+                  )
+
+    return Response(dict(res=list(sms_report)))
+
     res = []
     for key, row_data in enumerate(sms_report):
         url = settings.INFOZILLION_DELIVERYSTATUS_URL
