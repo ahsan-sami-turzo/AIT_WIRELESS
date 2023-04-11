@@ -1758,6 +1758,12 @@ def gatewayTrafficReportSSR(request):
     totalLength = len(data_array)
 
     # if search_value != "" or search_value is not None:
+    #     data_array = [
+    #         d for d in data_array
+    #         if d['company_name'] in [search_value]
+    #     ]
+
+    # if search_value != "" or search_value is not None:
     #     sms_report = sms_report.filter(
     #         Q(user__first_name__icontains=search_value) |
     #         Q(user__last_name__icontains=search_value) |
