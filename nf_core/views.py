@@ -1736,8 +1736,9 @@ def gatewayTrafficReportSSR(request):
         for k, info in enumerate(user_info):
             company_name = info.get("company_name")
 
-        sender_id_prefix = value.get("sender_id")[0:3]
-        gateway_provider = "" if sender_id_prefix == "880" else settings.GW_PROVIDERS[sender_id_prefix]
+        sender_id_prefix = value.get("sender_id")[2:5] if value.get("sender_id")[0:1] != '0' else value.get(
+            "sender_id")[0:3]
+        gateway_provider = settings.GW_PROVIDERS[sender_id_prefix]
 
         data_array.append([
             key + 1,
