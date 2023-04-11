@@ -21,7 +21,6 @@
                     <div class="card-body p-4">
                         <form>
                             <div class="row">
-
                                 <div class="col-12 col-lg-3 mb-2">
                                     <select class="form-control js-example-basic-single" name="user" id="filter_user">
                                         <option value="">Select user account</option>
@@ -39,7 +38,7 @@
                                     <input type="date" class="form-control" name="to" placeholder="To Date"
                                            value="{{ request.GET.to }}">
                                 </div>
-                                <div class="col-12 col-lg-3 mb-2">
+                                <div class="col-12 col-lg-2 mb-2">
                                     <select class="form-control js-example-basic-single" name="status"
                                             id="filter_status">
                                         <option value="">Select status</option>
@@ -48,15 +47,24 @@
                                         <option value="Pending">Pending</option>
                                     </select>
                                 </div>
-                                <div class="col-12 col-lg-2 mb-2">
-                                    <button type="submit" class="btn btn-primary">Filter</button>
+                                <div class="col-12 col-lg-3 mb-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-search" aria-hidden="true"> Search</i>
+                                    </button>
+                                    <button id="printIcon" class="btn btn-secondary" target="_blank">
+                                        <i class="fa fa-print" aria-hidden="true"> Print</i>
+                                    </button>
+                                    <button id="btnExportExcel" class="btn btn-dark" target="_blank">
+                                        <i class="fa fa-file-excel-o" aria-hidden="true"> Excel</i>
+                                    </button>
                                 </div>
+                            </button>
                             </div>
                         </form>
                     </div>
                 </div>
                 <div class="card">
-                    <div class="card-body p-4">
+                    <div class="card-body p-4" id="printDiv">
                         <div class="table-responsive">
                             <table class="display datatables" id="datatable-post">
                                 <thead>
@@ -89,6 +97,36 @@
         $(document).ready(function () {
             $("#filter_user").val('{{ request.GET.user }}').trigger('change');
             $("#filter_status").val('{{ request.GET.status }}').trigger('change');
+            // Print
+            $("#printIcon").click(function(event) {
+                var mainContents = document.getElementById("printDiv").innerHTML;
+                var headerContents = '';
+                var printStyle = '<style> thead tr th {text-align: center;vertical-align: top;padding: 3px;font-size: 11px }thead tr th:nth-child(10) {width: 40px;}tbody tr td:nth-child(10) {width: 40px;}tbody tr td.amount {border: 1px solid ash;text-align: right;vertical-align: middle;padding: 3px;font-size: 11px }tbody tr td {border: 1px solid ash;text-align: center;vertical-align: middle;padding: 3px;font-size: 11px }td:nth-child(1) {text-align: left;}tr {page-break-inside: avoid;page-break-after: auto }tr:last-child {font-weight: bold;}.name {text-align: left;vertical-align: left;}</style> <style media="print"> @page {margin: 10mm 10mm;}</style> <style> @media print {.element-that-contains-table {overflow: visible !important;}}</style>';
+                var printContents = '<div id="order-details-wrapper">' + headerContents + printStyle + mainContents + '</div>';
+                var win = window.open('', 'printwindow');
+                win.document.write(printContents);
+                win.print();
+                win.close();
+            });
+            // Excel
+            $("#btnExportExcel").click(function(e) {
+                var today = new Date();
+                var dd = today.getDate();
+                var mm = today.getMonth() + 1;
+                var yyyy = today.getFullYear();
+                if (dd < 10) dd = '0' + dd;
+                if (mm < 10) mm = '0' + mm;
+                today = dd + '-' + mm + '-' + yyyy;
+                let file = new Blob([$('#printDiv').html()], {
+                    type: "application/vnd.ms-excel"
+                });
+                let url = URL.createObjectURL(file);
+                let a = $("<a />", {
+                    href: url,
+                    download: "BTRC_Gateway_Report_" + today + ".xls"
+                }).appendTo("body").get(0).click();
+                e.preventDefault();
+            });
         });
 
         let ssr_url = '{% url 'nf.gateway.traffic.report.ssr' %}' + '?user={{ request.GET.user }}' + '&status={{ request.GET.status }}' + '&from={{ request.GET.from }}' + '&to={{ request.GET.to }}';
@@ -119,29 +157,6 @@
                 targets: 7, className: "text-center"
             }
         ]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 </script>
 <script src="{% static 'assets/js/datatable/datatables/jquery.dataTables.min.js' %}"></script>
