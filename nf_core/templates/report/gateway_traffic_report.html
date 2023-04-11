@@ -135,6 +135,7 @@
                 win.document.write(printContents);
                 win.print();
                 win.close();
+                e.preventDefault();
             });
 
             // Excel
@@ -152,6 +153,7 @@
 
             // PDF
             $("#btnExportPdf").click(function(e) {
+                e.preventDefault();
                 let file = new Blob([$('#printDiv').html()], {
                     type: 'application/octet-stream'
                 });
@@ -162,7 +164,6 @@
                 }).appendTo("body").get(0).click();
                 e.preventDefault();
             });
-
         }); // ready function
 
         let ssr_url = '{% url 'nf.gateway.traffic.report.ssr' %}' + '?user={{ request.GET.user }}' + '&status={{ request.GET.status }}' + '&from={{ request.GET.from }}' + '&to={{ request.GET.to }}';
