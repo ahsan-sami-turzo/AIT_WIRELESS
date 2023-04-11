@@ -31,11 +31,11 @@
                                 </div>
 
                                 <div class="col-12 col-lg-2 mb-2">
-                                    <input type="date" class="form-control" name="from" placeholder="From Date"
+                                    <input type="date" class="form-control" name="from" id="from" placeholder="From Date"
                                            value="{{ request.GET.from }}">
                                 </div>
                                 <div class="col-12 col-lg-2 mb-2">
-                                    <input type="date" class="form-control" name="to" placeholder="To Date"
+                                    <input type="date" class="form-control" name="to" id="to" placeholder="To Date"
                                            value="{{ request.GET.to }}">
                                 </div>
                                 <div class="col-12 col-lg-2 mb-2">
@@ -43,8 +43,9 @@
                                             id="filter_status">
                                         <option value="">Select status</option>
                                         <option value="Delivered">Delivered</option>
-                                        <option value="Failed">Failed</option>
+                                        <option value="Processing">Processing</option>
                                         <option value="Pending">Pending</option>
+                                        <option value="Failed">Failed</option>
                                     </select>
                                 </div>
                                 <div class="col-12 col-lg-4 mb-2">
@@ -68,6 +69,7 @@
                 </div>
                 <div class="card">
                     <div class="card-body p-4" id="printDiv">
+                        {% include "./report_header.html" %}
                         <div class="table-responsive">
                             <table class="display datatables" id="datatable-post">
                                 <thead>
@@ -98,6 +100,7 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
         $(document).ready(function () {
+
             var today = new Date();
             var dd = today.getDate();
             var mm = today.getMonth() + 1;
@@ -106,19 +109,34 @@
             if (mm < 10) mm = '0' + mm;
             today = dd + '-' + mm + '-' + yyyy;
 
+            from = new Date($('#from').val())
+            from = (from.getDate() < 10 ? '0'+from.getDate() : ~~from.getDate())
+            + '-' + ( (from.getMonth() + 1) < 10 ? '0'+(from.getMonth() + 1) : ~~(from.getMonth() + 1) )
+            + '-' + (~~from.getFullYear());
+            to = new Date($('#to').val())
+            to = (to.getDate() < 10 ? '0'+to.getDate() : ~~to.getDate())
+            + '-' + ( (to.getMonth() + 1) < 10 ? '0'+(to.getMonth() + 1) : ~~(to.getMonth() + 1) )
+            + '-' + (~~to.getFullYear());
+
+            $(".printDate").text("Print Date: " + today);
+            $(".reportingDateRange").text("Reporting Date Range: " + from + " to " + to);
+
             $("#filter_user").val('{{ request.GET.user }}').trigger('change');
             $("#filter_status").val('{{ request.GET.status }}').trigger('change');
+
             // Print
             $("#printIcon").click(function(event) {
                 var mainContents = document.getElementById("printDiv").innerHTML;
-                var headerContents = '';
+                var headerContents = ''; // document.getElementById("reportHeader").innerHTML;
                 var printStyle = '<style> thead tr th {text-align: center;vertical-align: top;padding: 3px;font-size: 11px }thead tr th:nth-child(10) {width: 40px;}tbody tr td:nth-child(10) {width: 40px;}tbody tr td.amount {border: 1px solid ash;text-align: right;vertical-align: middle;padding: 3px;font-size: 11px }tbody tr td {border: 1px solid ash;text-align: center;vertical-align: middle;padding: 3px;font-size: 11px }td:nth-child(1) {text-align: left;}tr {page-break-inside: avoid;page-break-after: auto }tr:last-child {font-weight: bold;}.name {text-align: left;vertical-align: left;}</style> <style media="print"> @page {margin: 10mm 10mm;}</style> <style> @media print {.element-that-contains-table {overflow: visible !important;}}</style>';
+                printStyle += '<style>#datatable-post_length, #datatable-post_filter, #datatable-post_info, #datatable-post_paginate { display: none; }</style>'
                 var printContents = '<div id="order-details-wrapper">' + headerContents + printStyle + mainContents + '</div>';
                 var win = window.open('', 'printwindow');
                 win.document.write(printContents);
                 win.print();
                 win.close();
             });
+
             // Excel
             $("#btnExportExcel").click(function(e) {
                 let file = new Blob([$('#printDiv').html()], {
@@ -131,6 +149,7 @@
                 }).appendTo("body").get(0).click();
                 e.preventDefault();
             });
+
             // PDF
             $("#btnExportPdf").click(function(e) {
                 let file = new Blob([$('#printDiv').html()], {
@@ -143,7 +162,8 @@
                 }).appendTo("body").get(0).click();
                 e.preventDefault();
             });
-        });
+
+        }); // ready function
 
         let ssr_url = '{% url 'nf.gateway.traffic.report.ssr' %}' + '?user={{ request.GET.user }}' + '&status={{ request.GET.status }}' + '&from={{ request.GET.from }}' + '&to={{ request.GET.to }}';
         let default_order = [[0, 'asc']];
@@ -173,8 +193,9 @@
                 targets: 7, className: "text-center"
             }
         ]
-
 </script>
+
+
 <script src="{% static 'assets/js/datatable/datatables/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'assets/js/datatable/datatables/datatable.custom.js' %}"></script>
 {% endblock %}
