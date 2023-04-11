@@ -21,7 +21,7 @@
                     <div class="card-body p-4">
                         <form>
                             <div class="row">
-                                <div class="col-12 col-lg-3 mb-2">
+                                <div class="col-12 col-lg-2 mb-2">
                                     <select class="form-control js-example-basic-single" name="user" id="filter_user">
                                         <option value="">Select user account</option>
                                         {% for user in user_info %}
@@ -47,15 +47,18 @@
                                         <option value="Pending">Pending</option>
                                     </select>
                                 </div>
-                                <div class="col-12 col-lg-3 mb-2">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fa fa-search" aria-hidden="true"> Search</i>
+                                <div class="col-12 col-lg-4 mb-2">
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        <i class="fa fa-search fa-sm" aria-hidden="true"> Search</i>
                                     </button>
-                                    <button id="printIcon" class="btn btn-secondary" target="_blank">
-                                        <i class="fa fa-print" aria-hidden="true"> Print</i>
+                                    <button id="printIcon" class="btn btn-sm btn-secondary" target="_blank">
+                                        <i class="fa fa-print fa-sm" aria-hidden="true"> Print</i>
                                     </button>
-                                    <button id="btnExportExcel" class="btn btn-dark" target="_blank">
-                                        <i class="fa fa-file-excel-o" aria-hidden="true"> Excel</i>
+                                    <button id="btnExportExcel" class="btn btn-sm btn-dark" target="_blank">
+                                        <i class="fa fa-file-excel-o fa-sm" aria-hidden="true"> Excel</i>
+                                    </button>
+                                    <button id="btnExportPdf" class="btn btn-sm btn-light" target="_blank">
+                                        <i class="fa fa-file-pdf-o fa-sm" aria-hidden="true"> Pdf</i>
                                     </button>
                                 </div>
                             </button>
@@ -95,6 +98,14 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
         $(document).ready(function () {
+            var today = new Date();
+            var dd = today.getDate();
+            var mm = today.getMonth() + 1;
+            var yyyy = today.getFullYear();
+            if (dd < 10) dd = '0' + dd;
+            if (mm < 10) mm = '0' + mm;
+            today = dd + '-' + mm + '-' + yyyy;
+
             $("#filter_user").val('{{ request.GET.user }}').trigger('change');
             $("#filter_status").val('{{ request.GET.status }}').trigger('change');
             // Print
@@ -110,20 +121,25 @@
             });
             // Excel
             $("#btnExportExcel").click(function(e) {
-                var today = new Date();
-                var dd = today.getDate();
-                var mm = today.getMonth() + 1;
-                var yyyy = today.getFullYear();
-                if (dd < 10) dd = '0' + dd;
-                if (mm < 10) mm = '0' + mm;
-                today = dd + '-' + mm + '-' + yyyy;
                 let file = new Blob([$('#printDiv').html()], {
                     type: "application/vnd.ms-excel"
                 });
-                let url = URL.createObjectURL(file);
+                let fileURL = URL.createObjectURL(file);
                 let a = $("<a />", {
-                    href: url,
+                    href: fileURL,
                     download: "BTRC_Gateway_Report_" + today + ".xls"
+                }).appendTo("body").get(0).click();
+                e.preventDefault();
+            });
+            // PDF
+            $("#btnExportPdf").click(function(e) {
+                let file = new Blob([$('#printDiv').html()], {
+                    type: 'application/octet-stream'
+                });
+                var fileURL = URL.createObjectURL(file);
+                let a = $("<a />", {
+                    href: fileURL,
+                    download: "BTRC_Gateway_Report_" + today + ".pdf"
                 }).appendTo("body").get(0).click();
                 e.preventDefault();
             });
