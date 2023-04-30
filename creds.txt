@@ -33,18 +33,22 @@ b44aec3e
 ####################  PACECLOUD  #####################
 ######################################################
 
-PaceCloud 01
-103.123.8.67 >> root || hi@PCuser#2!
-aaPanel Internet Address: https://103.123.8.67:7800/f69499da
-username: 3kgq07mx
-password: 803611f9
+103.123.8.77 >> root || hi@PCuser#2!
+aaPanel Internet Address: https://srv1.ambalawireless.com:7800/ambala
+username: ambalawireless
+password: 9Y0T5H6@1Y6
 
-PaceCloud 02
-103.123.8.68 >> root || hi@PCuser#2!
-aaPanel Internal Address: https://103.123.8.68:7800/8ab53004
-username: xn416eig
-password: 17e24cbe
+PGADMIN: https://pgadmin.ambalawireless.com
+username: ambalawireless@gmail.com
+password: ambalA9090
 
+MANAGE: https://manage.ambalawireless.com
+username: ambalawireless@gmail.com
+password: ambalA9090
+
+PORTAL: https://portal.ambalawireless.com
+username: ambalawireless@gmail.com
+password: ambalA9090
 
 ######################################################
 ##############  AMBALA WIRELESS - SRV1  ##############
