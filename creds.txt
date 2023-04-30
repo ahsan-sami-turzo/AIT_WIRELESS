@@ -33,14 +33,17 @@ b44aec3e
 ####################  PACECLOUD  #####################
 ######################################################
 
-103.123.8.77 >> root || G&^u8j5BYM6#(Y
-aaPanel Internet Address: https://srv1.ambalawireless.com:7800/ambala
+IP: 103.123.8.77
+username: root
+password: G&^u8j5BYM6#(Y
+
+AAPANEL: https://srv1.ambalawireless.com:7800/ambala
 username: ambalawireless
 password: 9Y0T5H6@1Y6
 
 PGADMIN: https://pgadmin.ambalawireless.com
 username: ambalawireless@gmail.com
-password: ambalA9090
+password: pi0ByZo0rvQD
 
 MANAGE: https://manage.ambalawireless.com
 username: ambalawireless@gmail.com

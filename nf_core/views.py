@@ -1758,9 +1758,9 @@ def gatewayTrafficReportSSR(request):
 
         for i, d in enumerate(data):
             align = 'center'
-            if i in [0, 3, 7]:
+            if i in [3, 7]:
                 align = 'right'
-            elif i in [1, 4, 5, 6]:
+            elif i in [1, 6]:
                 align = 'left'
 
             if i == 7:
