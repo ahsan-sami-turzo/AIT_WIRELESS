@@ -1685,24 +1685,10 @@ def gatewayTrafficReportSSR(request):
     SSR Rendering for Datatable
     """
 
-    filter_from = request.GET['from']
-    filter_to = request.GET['to']
-    filter_status = request.GET['status']
-    filter_user = request.GET['user']
-
-    if filter_from == "" and filter_to == "" and filter_status == "" and filter_user == "":
-        return JsonResponse({
-            "draw": request.POST['draw'],
-            "data": [],
-            "recordsTotal": 0,
-            "recordsFiltered": 0,
-        })
-
-    search_value = request.POST['search[value]'].strip()
-    startLimit = int(request.POST['start'])
-    endLimit = startLimit + int(request.POST['length'])
-    sorting_column = int(request.POST['order[0][column]'].strip())
-    sorting_dir = request.POST['order[0][dir]'].strip()
+    filter_from = request.POST['from']
+    filter_to = request.POST['to']
+    filter_status = request.POST['status']
+    filter_user = request.POST['user']
 
     sms_report = SMSHistory.objects.all()
 
@@ -1729,8 +1715,8 @@ def gatewayTrafficReportSSR(request):
                   .order_by('user_id')
                   )
 
+    totalCount = 0
     data_array = []
-    sms_report = sms_report[startLimit:endLimit]
     for key, value in enumerate(sms_report):
         user_info = list(UserInfo.objects.filter(user_id=value.get("user_id")).values())
         for k, info in enumerate(user_info):
@@ -1740,6 +1726,7 @@ def gatewayTrafficReportSSR(request):
             "sender_id")[0:3]
         gateway_provider = settings.GW_PROVIDERS[sender_id_prefix]
 
+        totalCount += value.get("count")
         data_array.append([
             key + 1,
             company_name,
@@ -1751,36 +1738,45 @@ def gatewayTrafficReportSSR(request):
             value.get("count")
         ])
 
-    if sorting_dir == 'desc':
-        data_array = sorted(data_array, key=itemgetter(sorting_column), reverse=True)
-    else:
-        data_array = sorted(data_array, key=itemgetter(sorting_column), reverse=False)
+    # PREPARING TABLE BODY
+    table_header = f"<thead>" \
+                   f"<tr class='table-secondary'>" \
+                   f"<th style='text-align: center; border: .01em solid grey; border-collapse: collapse'>#SL</th>" \
+                   f"<th style='text-align: center; border: .01em solid grey; border-collapse: collapse'>Customer Name</th>" \
+                   f"<th style='text-align: center; border: .01em solid grey; border-collapse: collapse'>Traffic Type</th>" \
+                   f"<th style='text-align: center; border: .01em solid grey; border-collapse: collapse'>Sender ID</th>" \
+                   f"<th style='text-align: center; border: .01em solid grey; border-collapse: collapse'>SMS Type</th>" \
+                   f"<th style='text-align: center; border: .01em solid grey; border-collapse: collapse'>GW Provider</th>" \
+                   f"<th style='text-align: center; border: .01em solid grey; border-collapse: collapse'>Destination Network</th>" \
+                   f"<th style='text-align: center; border: .01em solid grey; border-collapse: collapse'>MSISDN Count</th>" \
+                   f"</tr>" \
+                   f"</thead>"
 
-    totalLength = len(data_array)
+    table_body = f"<tbody>"
+    for data in data_array:
+        table_body += f"<tr>"
 
-    # if search_value != "" or search_value is not None:
-    #     data_array = [
-    #         d for d in data_array
-    #         if d['company_name'] in [search_value]
-    #     ]
+        for i, d in enumerate(data):
+            align = 'center'
+            if i in [0, 3, 7]:
+                align = 'right'
+            elif i in [1, 4, 5, 6]:
+                align = 'left'
 
-    # if search_value != "" or search_value is not None:
-    #     sms_report = sms_report.filter(
-    #         Q(user__first_name__icontains=search_value) |
-    #         Q(user__last_name__icontains=search_value) |
-    #         Q(user__email__icontains=search_value) |
-    #         Q(user__username__icontains=search_value) |
-    #         Q(uid__icontains=search_value) |
-    #         Q(receiver__icontains=search_value) |
-    #         Q(sender_id__icontains=search_value) |
-    #         Q(sms_body__icontains=search_value) |
-    #         Q(status__icontains=search_value))
+            if i == 7:
+                table_body += f"<td style='border: .01em solid grey; border-collapse: collapse; text-align:{align}'>{d:,}</td>"
+            else:
+                table_body += f"<td style='border: .01em solid grey; border-collapse: collapse; text-align:{align}'>{d}</td>"
 
-    response = {
-        "draw": request.POST['draw'],
-        "data": data_array,
-        "recordsTotal": totalLength,
-        "recordsFiltered": len(data_array),
-    }
+        table_body += f"</tr>"
+    table_body += f"</tbody>"
 
-    return JsonResponse(response, safe=False)
+    table_footer = f"<tfoot>" \
+                   f"<tr>" \
+                   f"<td colspan='7' style='border: .01em solid grey; border-collapse: collapse; text-align: right'>Total</td>" \
+                   f"<td style='border: .01em solid grey; border-collapse: collapse; text-align: right'>{totalCount:,}</td>" \
+                   f"</tr>" \
+                   f"</tfoot>"
+
+    report_table = table_header + table_body + table_footer
+    return JsonResponse(report_table, safe=False)

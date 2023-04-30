@@ -33,7 +33,7 @@ b44aec3e
 ####################  PACECLOUD  #####################
 ######################################################
 
-103.123.8.77 >> root || hi@PCuser#2!
+103.123.8.77 >> root || G&^u8j5BYM6#(Y
 aaPanel Internet Address: https://srv1.ambalawireless.com:7800/ambala
 username: ambalawireless
 password: 9Y0T5H6@1Y6
