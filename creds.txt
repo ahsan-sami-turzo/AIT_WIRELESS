@@ -43,7 +43,7 @@ password: 9Y0T5H6@1Y6
 
 PGADMIN: https://pgadmin.ambalawireless.com
 username: ambalawireless@gmail.com
-password: pi0ByZo0rvQD
+password: ambalA9090 || pi0ByZo0rvQD
 
 MANAGE: https://manage.ambalawireless.com
 username: ambalawireless@gmail.com
@@ -52,6 +52,36 @@ password: ambalA9090
 PORTAL: https://portal.ambalawireless.com
 username: ambalawireless@gmail.com
 password: ambalA9090
+
+=== TEST :: DAWLATPLUS ===
+
+https://srv1.dawlatplus.com:7800/ambala
+user: ambalawireless
+pass: 98v5yJ9w0
+
+http://pgadmin.dawlatplus.com/browser/
+username: ambalawireless@gmail.com
+password: ambalA9090
+
+https://manage.dawlatplus.com/home
+username: ambalawireless@gmail.com
+password: ambalA9090
+
+
+DB_HOST=103.123.8.67
+DB_PORT=5433
+DB_NAME=ambala_wireless_db
+DB_USER=ambala_user
+DB_PASS=TbKCeL9Beaa6
+
+POSTGRES_PASSWORD=TbKCeL9Beaa6
+POSTGRES_USER=postgres
+POSTGRES_HOST_AUTH_METHOD=password
+PGDATA=/var/lib/postgresql/data/pgdata
+
+PGADMIN_DEFAULT_EMAIL=ambalawireless@gmail.com
+PGADMIN_DEFAULT_PASSWORD=TbKCeL9Beaa6
+PGADMIN_DISABLE_POSTFIX=True
 
 ######################################################
 ##############  AMBALA WIRELESS - SRV1  ##############
