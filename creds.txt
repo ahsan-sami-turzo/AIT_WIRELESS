@@ -9,8 +9,8 @@ Username: AmbalaIT
 Password: AViGso8QGu
 
 == Robi Panel ==
-ambala
-gEjfmD3@cduAY7F
+Username: ambala
+Password: U6l6Hbn89eR173r@
 
 == PaceCloud ==
 103.123.8.30
