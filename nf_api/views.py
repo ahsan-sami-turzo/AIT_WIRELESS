@@ -1582,3 +1582,17 @@ def getUserSMSHistory(request):
         })
 
     return Response(dict(res=list(data)))
+
+
+@api_view(['GET'])
+def getUserBalance(request):
+    """
+    Return the account-balance
+    """
+    return Response({
+        'code': status.HTTP_200_OK,
+        'message': 'User balance',
+        'data': {
+            'account_balance': round(UserInfo.objects.get(user=request.user).credit, 2)
+        }
+    })

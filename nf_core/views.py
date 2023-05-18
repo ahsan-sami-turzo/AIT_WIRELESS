@@ -1711,7 +1711,10 @@ def gatewayTrafficReportSSR(request):
 
     sms_report = (sms_report
                   .values('user_id', 'sender_id', 'operator_name', 'sms_category')
-                  .annotate(count=Count('id'))
+                  # .annotate(count=Count('id'))
+                  # .annotate(count=Sum('sms_count'))
+                  # count(id) as no_of_sms, sum(sms_count) as total_sms_count, sum(sms_cost) as total_cost
+                  .annotate(no_of_sms=Count('id'), total_sms_count=Sum('sms_count'), total_cost=Sum('sms_cost'))
                   .order_by('user_id')
                   )
 
@@ -1780,3 +1783,8 @@ def gatewayTrafficReportSSR(request):
 
     report_table = table_header + table_body + table_footer
     return JsonResponse(report_table, safe=False)
+
+
+def operatorWiseApiConfig(receiver):
+    operator_prefix = receiver[2:5] if receiver[0:1] != '0' else receiver[0:3]
+    operator_name = settings.GW_PROVIDERS[operator_prefix]

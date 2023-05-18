@@ -232,3 +232,22 @@ GW_PROVIDERS = {
     '066': 'DhakaPhone',
     '042': 'ShebaPhone',
 }
+
+operator_config = {
+    'Grameenphone': {
+        'username': '',
+        'password': ''
+    },
+    'Robi': {
+        'username': '',
+        'password': ''
+    },
+    'Banglalink': {
+        'username': '',
+        'password': ''
+    },
+    'Teletalk': {
+        'username': '',
+        'password': ''
+    },
+}

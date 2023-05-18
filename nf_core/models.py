@@ -273,3 +273,28 @@ class SMSQueueHandler(models.Model):
     queue = models.CharField(max_length=200)
     operator_logo = models.CharField(max_length=200, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class SmsGatewayCredentialsConfig(models.Model):
+    """
+    SMS Configuration for MNO / IPTSP
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_config')
+    operator_name = models.TextField()
+    operator_prefix = models.CharField(max_length=4)
+    operator_type = models.CharField(
+        choices=[
+            ("MNO", "MNO"),
+            ("IPTSP", "IPTSP"),
+        ],
+        default="MNO",
+    )
+    api_url = models.URLField()
+    username = models.CharField(max_length=100)
+    password = models.CharField(max_length=100)
+    api_key = models.TextField()
+    cli = models.CharField(max_length=100)
+    bill_msisdn = models.CharField(max_length=100)
+    is_masking_enabled = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
