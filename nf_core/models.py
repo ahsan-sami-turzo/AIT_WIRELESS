@@ -275,26 +275,73 @@ class SMSQueueHandler(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-class SmsGatewayCredentialsConfig(models.Model):
+class SmsAggregatorInfozillionAPIConfig(models.Model):
     """
-    SMS Configuration for MNO / IPTSP
+    SMS Configuration for INFOZILLION
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_config')
-    operator_name = models.TextField()
-    operator_prefix = models.CharField(max_length=4)
     operator_type = models.CharField(
         choices=[
             ("MNO", "MNO"),
             ("IPTSP", "IPTSP"),
         ],
-        default="MNO",
+        default="MNO"
     )
-    api_url = models.URLField()
+    send_sms_url = models.URLField(default="https://api.mnpspbd.com/a2p-sms/api/v1/send-sms")
+    # URL(IPTSP)= https://api.mnpspbd.com/a2p-sms-iptsp/api/v1/send-sms
+    delivery_status_url = models.URLField(default="https://api.mnpspbd.com/a2p-proxy-api/api/v1/check-delivery-report")
+    # URL(IPTSP)= https://api.mnpspbd.com/a2p-proxy-api-iptsp/api/v1/check-delivery-report
+    check_balance_url = models.URLField(default="https://api.mnpspbd.com/a2p-proxy-api/api/v1/check-credit-balance")
+    # URL(IPTSP)= https://api.mnpspbd.com/a2p-proxy-api-iptsp/api/v1/check-credit-balance
+    check_cli_url = models.URLField(default="https://api.mnpspbd.com/a2p-proxy-api/api/v1/check-cli")
+    # URL(IPTSP)= ""
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class SmsAggregatorCredentialConfig(models.Model):
+    operator_type = models.CharField(
+        choices=[
+            ("MNO", "MNO"),
+            ("IPTSP", "IPTSP"),
+        ],
+        default="MNO"
+    )
+    operator_name = models.CharField(max_length=20)
+    operator_prefix = models.CharField(max_length=4)
+    username = models.CharField(max_length=20)
+    password = models.CharField(max_length=20)
+    api_key = models.CharField(max_length=50)
+    bill_msisdn = models.CharField(max_length=20)
+    cli = models.CharField(max_length=20)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class SmsDestinationConfig(models.Model):
+    """
+    SMS Configuration for MNO / IPTSP
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_config')
+    destination_operator_name = models.CharField(
+        choices=[
+            ("Grameenphone", "Grameenphone"),
+            ("Banglalink", "Banglalink"),
+            ("TeleTalk", "TeleTalk"),
+            ("Robi", "Robi")
+        ],
+        default="Grameenphone"
+    )
+    destination_operator_prefix = models.CharField(max_length=3)
+    is_masking_enabled = models.BooleanField(default=False)
+    sender_operator_type = models.CharField(
+        choices=[
+            ("MNO", "MNO"),
+            ("IPTSP", "IPTSP"),
+        ],
+        default="MNO"
+    )
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
     api_key = models.TextField()
     cli = models.CharField(max_length=100)
     bill_msisdn = models.CharField(max_length=100)
-    is_masking_enabled = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
