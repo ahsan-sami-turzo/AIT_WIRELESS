@@ -275,10 +275,11 @@ class SMSQueueHandler(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-class SmsAggregatorInfozillionAPIConfig(models.Model):
+class SmsAggregatorMNPSPConfig(models.Model):
     """
     SMS Configuration for INFOZILLION
     """
+    api_key = models.CharField(max_length=50)
     operator_type = models.CharField(
         choices=[
             ("MNO", "MNO"),
@@ -295,6 +296,7 @@ class SmsAggregatorInfozillionAPIConfig(models.Model):
     check_cli_url = models.URLField(default="https://api.mnpspbd.com/a2p-proxy-api/api/v1/check-cli")
     # URL(IPTSP)= ""
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class SmsAggregatorCredentialConfig(models.Model):
@@ -309,15 +311,16 @@ class SmsAggregatorCredentialConfig(models.Model):
     operator_prefix = models.CharField(max_length=4)
     username = models.CharField(max_length=20)
     password = models.CharField(max_length=20)
-    api_key = models.CharField(max_length=50)
     bill_msisdn = models.CharField(max_length=20)
+    is_masking_enabled = models.BooleanField(default=False)
     cli = models.CharField(max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class SmsDestinationConfig(models.Model):
     """
-    SMS Configuration for MNO / IPTSP
+    SMS Configuration for Destination
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_config')
     destination_operator_name = models.CharField(
@@ -330,18 +333,6 @@ class SmsDestinationConfig(models.Model):
         default="Grameenphone"
     )
     destination_operator_prefix = models.CharField(max_length=3)
-    is_masking_enabled = models.BooleanField(default=False)
-    sender_operator_type = models.CharField(
-        choices=[
-            ("MNO", "MNO"),
-            ("IPTSP", "IPTSP"),
-        ],
-        default="MNO"
-    )
-    username = models.CharField(max_length=100)
-    password = models.CharField(max_length=100)
-    api_key = models.TextField()
-    cli = models.CharField(max_length=100)
-    bill_msisdn = models.CharField(max_length=100)
+    aggregator_operator = models.ForeignKey(SmsAggregatorCredentialConfig, on_delete=models.CASCADE, related_name='sms_destination_config')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
