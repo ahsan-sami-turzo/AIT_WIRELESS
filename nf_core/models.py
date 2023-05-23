@@ -286,7 +286,8 @@ class SmsAggregatorCentralPlatformConfig(models.Model):
             ("MNO", "MNO"),
             ("IPTSP", "IPTSP"),
         ],
-        default="MNO"
+        default="MNO",
+        max_length=20
     )
     send_sms_url = models.URLField(default="https://api.mnpspbd.com/a2p-sms/api/v1/send-sms")
     # URL(IPTSP)= https://api.mnpspbd.com/a2p-sms-iptsp/api/v1/send-sms
@@ -299,15 +300,22 @@ class SmsAggregatorCentralPlatformConfig(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        managed = True
+        db_table = "sms_aggregator_centralplatform_config"
+        verbose_name = 'SMS Aggregator Central Platform Config'
+        indexes = [models.Index(fields=['operator_type'])]
+
 
 class SmsUserOperatorCredentialConfig(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_config')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sms_user_operator_credential_config')
     operator_type = models.CharField(
         choices=[
             ("MNO", "MNO"),
             ("IPTSP", "IPTSP"),
         ],
-        default="MNO"
+        default="MNO",
+        max_length=5
     )
     operator_name = models.CharField(
         choices=[
@@ -337,12 +345,18 @@ class SmsUserOperatorCredentialConfig(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        managed = True
+        db_table = "sms_user_operator_credential_config"
+        verbose_name = 'SMS User Operator Credential Config'
+        indexes = [models.Index(fields=['user', 'operator_name'])]
 
-class SmsUserReceiverConfig(models.Model):
+
+class SmsUserDestinationConfig(models.Model):
     """
     SMS Configuration for Destination
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_config')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sms_user_destination_config')
     destination_operator_name = models.CharField(
         choices=[
             ("Grameenphone", "Grameenphone"),
@@ -354,6 +368,12 @@ class SmsUserReceiverConfig(models.Model):
         max_length=20
     )
     destination_operator_prefix = models.CharField(max_length=3)
-    aggregator_operator = models.ForeignKey(SmsUserOperatorCredentialConfig, on_delete=models.CASCADE, related_name='sms_user_receiver_config')
+    aggregator_operator = models.ForeignKey(SmsUserOperatorCredentialConfig, on_delete=models.CASCADE, related_name='sms_user_destination_config')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = True
+        db_table = "sms_user_destination_config"
+        verbose_name = 'SMS User Destination Config'
+        indexes = [models.Index(fields=['user', 'destination_operator_prefix'])]
