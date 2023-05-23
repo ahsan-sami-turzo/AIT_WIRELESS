@@ -273,9 +273,10 @@ class SMSQueueHandler(models.Model):
     queue = models.CharField(max_length=200)
     operator_logo = models.CharField(max_length=200, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
-class SmsAggregatorMNPSPConfig(models.Model):
+class SmsAggregatorCentralPlatformConfig(models.Model):
     """
     SMS Configuration for INFOZILLION
     """
@@ -299,7 +300,8 @@ class SmsAggregatorMNPSPConfig(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class SmsAggregatorCredentialConfig(models.Model):
+class SmsUserOperatorCredentialConfig(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_config')
     operator_type = models.CharField(
         choices=[
             ("MNO", "MNO"),
@@ -307,8 +309,26 @@ class SmsAggregatorCredentialConfig(models.Model):
         ],
         default="MNO"
     )
-    operator_name = models.CharField(max_length=20)
-    operator_prefix = models.CharField(max_length=4)
+    operator_name = models.CharField(
+        choices=[
+            ("Grameenphone", "Grameenphone"),
+            ("Banglalink", "Banglalink"),
+            ("TeleTalk", "TeleTalk"),
+            ("Robi", "Robi"),
+            ("BanglaPhone", "BanglaPhone"),
+            ("Telebarta", "Telebarta"),
+            ("NationalPhone", "NationalPhone"),
+            ("PeoplesTel", "PeoplesTel"),
+            ("RanksTel", "RanksTel"),
+            ("BijoyPhone", "BijoyPhone"),
+            ("Onetel", "Onetel"),
+            ("DhakaPhone", "DhakaPhone"),
+            ("ShebaPhone", "ShebaPhone")
+        ],
+        blank=False,
+        max_length=20
+    )
+    operator_prefix = models.CharField(max_length=4, unique=True)
     username = models.CharField(max_length=20)
     password = models.CharField(max_length=20)
     bill_msisdn = models.CharField(max_length=20)
@@ -318,7 +338,7 @@ class SmsAggregatorCredentialConfig(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class SmsDestinationConfig(models.Model):
+class SmsUserReceiverConfig(models.Model):
     """
     SMS Configuration for Destination
     """
@@ -330,9 +350,10 @@ class SmsDestinationConfig(models.Model):
             ("TeleTalk", "TeleTalk"),
             ("Robi", "Robi")
         ],
-        default="Grameenphone"
+        blank=False,
+        max_length=20
     )
     destination_operator_prefix = models.CharField(max_length=3)
-    aggregator_operator = models.ForeignKey(SmsAggregatorCredentialConfig, on_delete=models.CASCADE, related_name='sms_destination_config')
+    aggregator_operator = models.ForeignKey(SmsUserOperatorCredentialConfig, on_delete=models.CASCADE, related_name='sms_user_receiver_config')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
