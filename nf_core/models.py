@@ -323,15 +323,17 @@ class SmsUserOperatorCredentialConfig(models.Model):
             ("Banglalink", "Banglalink"),
             ("TeleTalk", "TeleTalk"),
             ("Robi", "Robi"),
+
+            ("Agni", "Agni"),
             ("BanglaPhone", "BanglaPhone"),
-            ("Telebarta", "Telebarta"),
+            ("BijoyPhone", "BijoyPhone"),
+            ("DhakaPhone", "DhakaPhone"),
             ("NationalPhone", "NationalPhone"),
+            ("Onetel", "Onetel"),
             ("PeoplesTel", "PeoplesTel"),
             ("RanksTel", "RanksTel"),
-            ("BijoyPhone", "BijoyPhone"),
-            ("Onetel", "Onetel"),
-            ("DhakaPhone", "DhakaPhone"),
-            ("ShebaPhone", "ShebaPhone")
+            ("ShebaPhone", "ShebaPhone"),
+            ("Telebarta", "Telebarta"),
         ],
         blank=False,
         max_length=20
