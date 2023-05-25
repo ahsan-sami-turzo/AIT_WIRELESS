@@ -29,12 +29,8 @@ def is_valid_url(to_validate: str) -> bool:
     validator = URLValidator()
     try:
         validator(to_validate)
-        # url is valid here
-        # do something, such as:
         return True
     except ValidationError as exception:
-        # URL is NOT valid here.
-        # handle exception..
         print(exception)
         return False
 
@@ -76,6 +72,7 @@ def setAggregatorCentralPlatformConfig(request):
     return render(request, 'configuration/sms_aggregator_centralplatform_config.html', context)
 
 
+@login_required
 @csrf_exempt
 def storeAggregatorCentralPlatformConfig(request):
     operator_type = request.POST['operator_type']
@@ -145,3 +142,46 @@ def storeAggregatorCentralPlatformConfig(request):
             return JsonResponse(data, safe=False)
     except Exception as e:
         return JsonResponse(str(e), safe=False)
+
+
+@login_required
+def setUserOperatorCredentialConfig(request):
+    """
+    SMS Configuration for User Operator Credentials
+    """
+    operator_types = [
+        "MNO",
+        "IPTSP",
+    ]
+    mno_list = [
+        "Grameenphone",
+        "Banglalink",
+        "TeleTalk",
+        "Robi"
+    ]
+    iptsp_list = [
+        "Agni",
+        "BanglaPhone",
+        "BijoyPhone",
+        "DhakaPhone",
+        "NationalPhone",
+        "Onetel",
+        "PeoplesTel",
+        "RanksTel",
+        "ShebaPhone",
+        "Telebarta",
+    ]
+    context = {
+        'app_name': settings.APP_NAME,
+        'page_title': "User Operator Credential Configuration",
+        'operator_types': operator_types,
+        'mno_list': mno_list,
+        'iptsp_list': iptsp_list,
+    }
+    return render(request, 'configuration/sms_aggregator_centralplatform_config.html', context)
+
+
+@login_required
+@csrf_exempt
+def storeUserOperatorCredentialConfig(request):
+    return JsonResponse(str('aaa'), safe=False)
