@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from .views import *
+from .user_config import *
 
 urlpatterns = [
     path('', homeRedirect),
@@ -62,4 +63,10 @@ urlpatterns = [
     # Date: 09-04-2023
     path('report/gateway-traffic-report', gatewayTrafficReport, name='nf.gateway.traffic.report'),
     path('local-api/gateway-traffic-report/ssr', gatewayTrafficReportSSR, name='nf.gateway.traffic.report.ssr'),
+
+    # SMS USER CONFIG
+    # Date: 24-05-2023
+    # Aggregator Central Platform Config
+    path('configuration/aggregator/centralplatform', setAggregatorCentralPlatformConfig, name='aggregator.centralplatform.configuration'),
+    path('configuration/aggregator/centralplatform/store', storeAggregatorCentralPlatformConfig, name='aggregator.centralplatform.configuration.store'),
 ]

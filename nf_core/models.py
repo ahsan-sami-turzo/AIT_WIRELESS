@@ -278,7 +278,7 @@ class SMSQueueHandler(models.Model):
 
 class SmsAggregatorCentralPlatformConfig(models.Model):
     """
-    SMS Configuration for INFOZILLION
+    SMS Configuration for AMBALAWIRELESS-INFOZILLION
     """
     api_key = models.CharField(max_length=50)
     operator_type = models.CharField(
@@ -305,6 +305,7 @@ class SmsAggregatorCentralPlatformConfig(models.Model):
         db_table = "sms_aggregator_centralplatform_config"
         verbose_name = 'SMS Aggregator Central Platform Config'
         indexes = [models.Index(fields=['operator_type'])]
+        get_latest_by = ['id']
 
 
 class SmsUserOperatorCredentialConfig(models.Model):

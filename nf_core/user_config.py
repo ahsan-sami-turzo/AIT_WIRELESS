@@ -1,0 +1,147 @@
+import json
+import os.path
+
+from django.contrib import messages
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
+from django.db.models import Q
+from django.shortcuts import render, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm, AdminPasswordChangeForm
+from rest_framework.authtoken.models import Token
+from django.db.models import Sum, Count
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
+
+from .decorator import *
+from .forms import *
+from .helper import *
+
+from datetime import datetime, timedelta
+from pprint import pprint
+from operator import itemgetter
+from nf_core.models import User, SmsAggregatorCentralPlatformConfig
+
+
+def is_valid_url(to_validate: str) -> bool:
+    validator = URLValidator()
+    try:
+        validator(to_validate)
+        # url is valid here
+        # do something, such as:
+        return True
+    except ValidationError as exception:
+        # URL is NOT valid here.
+        # handle exception..
+        print(exception)
+        return False
+
+
+@login_required
+def setAggregatorCentralPlatformConfig(request):
+    """
+    SMS Configuration for AMBALAWIRELESS-INFOZILLION
+    """
+    operator_types = [
+        "MNO",
+        "IPTSP",
+    ]
+    mno_list = [
+        "Grameenphone",
+        "Banglalink",
+        "TeleTalk",
+        "Robi"
+    ]
+    iptsp_list = [
+        "Agni",
+        "BanglaPhone",
+        "BijoyPhone",
+        "DhakaPhone",
+        "NationalPhone",
+        "Onetel",
+        "PeoplesTel",
+        "RanksTel",
+        "ShebaPhone",
+        "Telebarta",
+    ]
+    context = {
+        'app_name': settings.APP_NAME,
+        'page_title': "Aggregator Central Platform Configuration",
+        'operator_types': operator_types,
+        'mno_list': mno_list,
+        'iptsp_list': iptsp_list,
+    }
+    return render(request, 'configuration/sms_aggregator_centralplatform_config.html', context)
+
+
+@csrf_exempt
+def storeAggregatorCentralPlatformConfig(request):
+    operator_type = request.POST['operator_type']
+    api_key = request.POST['api_key']
+    send_sms_url = request.POST['send_sms_url']
+    delivery_status_url = request.POST['delivery_status_url']
+    check_balance_url = request.POST['check_balance_url']
+    check_cli_url = request.POST['check_cli_url']
+
+    error = {
+        'code': 500,
+        'message': 'Invalid URL'
+    }
+
+    if not is_valid_url(send_sms_url):
+        return JsonResponse(error, safe=False)
+    if not is_valid_url(delivery_status_url):
+        return JsonResponse(error, safe=False)
+    if not is_valid_url(check_balance_url):
+        return JsonResponse(error, safe=False)
+    if operator_type == 'MNO' and not is_valid_url(check_cli_url):
+        return JsonResponse(error, safe=False)
+
+    data = {
+        'operator_type': operator_type,
+        'api_key': api_key,
+        'send_sms_url': send_sms_url,
+        'delivery_status_url': delivery_status_url,
+        'check_balance_url': check_balance_url,
+        'check_cli_url': check_cli_url
+    }
+
+    try:
+        config_len = len(
+            list(
+                SmsAggregatorCentralPlatformConfig
+                .objects
+                .all()
+                .filter(
+                    operator_type=operator_type,
+                    api_key=api_key,
+                    send_sms_url=send_sms_url,
+                    delivery_status_url=delivery_status_url,
+                    check_balance_url=check_balance_url,
+                    check_cli_url=check_cli_url
+                )
+            )
+        )
+
+        if config_len == 0:
+            config = SmsAggregatorCentralPlatformConfig()
+            config.operator_type = operator_type
+            config.api_key = api_key
+            config.send_sms_url = send_sms_url
+            config.delivery_status_url = delivery_status_url
+            config.check_balance_url = check_balance_url
+            config.check_cli_url = check_cli_url
+            config.save()
+
+            config = list(
+                SmsAggregatorCentralPlatformConfig
+                .objects
+                .values('operator_type', 'api_key', 'send_sms_url', 'delivery_status_url', 'check_balance_url', 'check_cli_url')
+            )
+            return JsonResponse(config, safe=False)
+        else:
+            return JsonResponse(data, safe=False)
+    except Exception as e:
+        return JsonResponse(str(e), safe=False)

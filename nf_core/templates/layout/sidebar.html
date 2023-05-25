@@ -50,6 +50,21 @@
                             <span>User Management</span>
                         </a>
                     </li>
+
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title" href="#" data-bs-original-title="" title="">
+                            <i data-feather="settings"></i>
+                            <span>Configuration</span>
+                            <div class="according-menu"><i class="fa fa-angle-right"></i></div>
+                        </a>
+                        <ul class="sidebar-submenu" style="display: none;">
+                            <li>
+                                <a href="{% url 'aggregator.centralplatform.configuration' %}" data-bs-original-title="" title="">Central Platform</a>
+                            </li>
+
+                        </ul>
+                    </li>
+
                     <li class="sidebar-list">
                         {% url 'nf.sms.report' as activeURL %}
                         <a class="sidebar-link sidebar-title link-nav" href="{{ activeURL }}">

@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block css %}
+{% endblock css %}
+
+{% block content %}
+<div class="page-body">
+    {% include 'layout/breadcrumb.html' %}
+    <!-- Container-fluid starts-->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                {% include 'layout/message.html' %}
+            </div>
+            <div class="col-9">
+                <form class="card" id="configForm">
+                    <div class="card-body p-4">
+                        <div class="col-sm-6 col-md-9" style="margin: 0 auto">
+                            <div class="mb-3">
+                                <label class="form-label">MNO/IPTSP</label>
+                                <select class="form-select" id="operator_type">
+                                    {% for op in operator_types %}
+                                    <option value="{{ op }}">{{ op }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">API Key</label>
+                                <input type="text" class="form-control" id="api_key"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Send SMS URL</label>
+                                <input type="text" class="form-control" id="send_sms_url"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Delivery Status URL</label>
+                                <input type="text" class="form-control" id="delivery_status_url"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Check Balance URL</label>
+                                <input type="text" class="form-control" id="check_balance_url"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Check CLI URL</label>
+                                <input type="text" class="form-control" id="check_cli_url"/>
+                            </div>
+                            <div class="mb-3">
+                                <button class="btn btn-success" id="btnStore">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid Ends-->
+</div>
+{% endblock content %}
+
+{% block scriptcontent %}
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
+<script>
+        $("#operator_type").change(function(){
+            let $option = $(this).find('option:selected')
+            let value = $option.val()
+            let text = $option.text()
+            console.log(value, text)
+        });
+
+        function isUrlValid(url) {
+            return /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(url);
+        }
+
+        //*
+        // STORE DATA
+        $("#btnStore").click(function(e) {
+            e.preventDefault()
+
+            let operator_type = $("#operator_type").find('option:selected').val()
+            let api_key = $("#api_key").val()
+            let send_sms_url = $("#send_sms_url").val()
+            let delivery_status_url = $("#delivery_status_url").val()
+            let check_balance_url = $("#check_balance_url").val()
+            let check_cli_url = $("#check_cli_url").val()
+            let url = '{% url 'aggregator.centralplatform.configuration.store' %}'
+
+            $("#api_key").attr('style', "border-radius: .25rem; border:#CED4DA 1px solid;")
+            $("#send_sms_url").attr('style', "border-radius: .25rem; border:#CED4DA 1px solid;")
+            $("#delivery_status_url").attr('style', "border-radius: .25rem; border:#CED4DA 1px solid;")
+            $("#check_balance_url").attr('style', "border-radius: .25rem; border:#CED4DA 1px solid;")
+            $("#check_cli_url").attr('style', "border-radius: .25rem; border:#CED4DA 1px solid;")
+
+            if( !api_key ) {
+                toastr.warning("Please Input From API Key")
+                $("#api_key").attr('style', "border-radius: .5rem; border:#FF0000 1px solid;")
+                return
+            }
+            if( !send_sms_url || !isUrlValid(send_sms_url) ) {
+                toastr.warning("Please Input Valid URL")
+                $("#send_sms_url").attr('style', "border-radius: 5px; border:#FF0000 1px solid;")
+                return
+            }
+            if( !delivery_status_url || !isUrlValid(delivery_status_url) ) {
+                toastr.warning("Please Input Valid URL")
+                $("#delivery_status_url").attr('style', "border-radius: 5px; border:#FF0000 1px solid;")
+                return
+            }
+            if( !check_balance_url || !isUrlValid(check_balance_url) ) {
+                toastr.warning("Please Input Valid URL")
+                $("#check_balance_url").attr('style', "border-radius: 5px; border:#FF0000 1px solid;")
+                return
+            }
+            if( operator_type == 'MNO' && (!check_cli_url || !isUrlValid(check_cli_url)) ) {
+                toastr.warning("Please Input Valid URL")
+                $("#check_cli_url").attr('style', "border-radius: 5px; border:#FF0000 1px solid;")
+                return
+            }
+
+            let data = {
+                operator_type: operator_type,
+                api_key: api_key,
+                send_sms_url: send_sms_url,
+                delivery_status_url: delivery_status_url,
+                check_balance_url: check_balance_url,
+                check_cli_url : check_cli_url
+            }
+
+            // AJAX START
+            $.ajax({
+                type: 'post',
+                url: url,
+                dataType: 'json',
+                data: data,
+                success: function( response ) {
+                    console.log( response )
+                },
+                error: function ( error ) {
+                    toastr.error("Something Went Wrong")
+                }
+            }); // AJAX END
+        }); // STORE END
+        //*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+{% endblock %}
