@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.shortcuts import render, HttpResponse
+from django.utils.safestring import SafeString
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm, AdminPasswordChangeForm
@@ -62,13 +63,24 @@ def setAggregatorCentralPlatformConfig(request):
         "ShebaPhone",
         "Telebarta",
     ]
+
+    config_list = list(
+        SmsAggregatorCentralPlatformConfig
+        .objects
+        .values('operator_type', 'api_key', 'send_sms_url', 'delivery_status_url', 'check_balance_url', 'check_cli_url')
+    )
+    config_len = len(config_list)
+
     context = {
         'app_name': settings.APP_NAME,
         'page_title': "Aggregator Central Platform Configuration",
         'operator_types': operator_types,
         'mno_list': mno_list,
         'iptsp_list': iptsp_list,
+        'config_len': config_len,
+        'config_list': SafeString(config_list)
     }
+
     return render(request, 'configuration/sms_aggregator_centralplatform_config.html', context)
 
 
@@ -106,21 +118,22 @@ def storeAggregatorCentralPlatformConfig(request):
     }
 
     try:
-        config_len = len(
-            list(
-                SmsAggregatorCentralPlatformConfig
-                .objects
-                .all()
-                .filter(
-                    operator_type=operator_type,
-                    api_key=api_key,
-                    send_sms_url=send_sms_url,
-                    delivery_status_url=delivery_status_url,
-                    check_balance_url=check_balance_url,
-                    check_cli_url=check_cli_url
-                )
+        config_list = list(
+            SmsAggregatorCentralPlatformConfig
+            .objects
+            .all()
+            .filter(
+                operator_type=operator_type,
+                api_key=api_key,
+                send_sms_url=send_sms_url,
+                delivery_status_url=delivery_status_url,
+                check_balance_url=check_balance_url,
+                check_cli_url=check_cli_url
             )
+            .values('operator_type', 'api_key', 'send_sms_url', 'delivery_status_url', 'check_balance_url', 'check_cli_url')
         )
+
+        config_len = len(config_list)
 
         if config_len == 0:
             config = SmsAggregatorCentralPlatformConfig()
@@ -139,7 +152,7 @@ def storeAggregatorCentralPlatformConfig(request):
             )
             return JsonResponse(config, safe=False)
         else:
-            return JsonResponse(data, safe=False)
+            return JsonResponse(config_list, safe=False)
     except Exception as e:
         return JsonResponse(str(e), safe=False)
 

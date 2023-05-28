@@ -21,6 +21,7 @@
                             <div class="mb-3">
                                 <label class="form-label">MNO/IPTSP</label>
                                 <select class="form-select" id="operator_type">
+                                    <option value="">Select</option>
                                     {% for op in operator_types %}
                                     <option value="{{ op }}">{{ op }}</option>
                                     {% endfor %}
@@ -64,16 +65,70 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
 <script>
-        $("#operator_type").change(function(){
-            let $option = $(this).find('option:selected')
-            let value = $option.val()
-            let text = $option.text()
-            console.log(value, text)
-        });
+        var mno_config = {
+            operator_type: "",
+            api_key:"",
+            check_balance_url:"",
+            check_cli_url: "",
+            delivery_status_url: "",
+            send_sms_url:""
+        }
+
+        var iptsp_config = {
+            operator_type: "",
+            api_key:"",
+            check_balance_url:"",
+            check_cli_url: "",
+            delivery_status_url: "",
+            send_sms_url:""
+        }
+
+        function emptyFormValues() {
+            $("#api_key").val( "" )
+            $("#send_sms_url").val( "" )
+            $("#delivery_status_url").val( "" )
+            $("#check_balance_url").val( "" )
+            $("#check_cli_url").val( "" )
+        }
+
+        function setFormValues(obj) {
+            $("#api_key").val(obj.api_key)
+            $("#send_sms_url").val(obj.send_sms_url)
+            $("#delivery_status_url").val(obj.delivery_status_url)
+            $("#check_balance_url").val(obj.check_balance_url)
+            $("#check_cli_url").val(obj.check_cli_url)
+        }
 
         function isUrlValid(url) {
             return /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(url);
         }
+
+        $( document ).ready(function() {
+            $("#api_key").val( "" )
+            $("#send_sms_url").val( "" )
+            $("#delivery_status_url").val( "" )
+            $("#check_balance_url").val( "" )
+            $("#check_cli_url").val( "" )
+
+            let config_list = {{ config_list|safe }}
+            if(config_list) {
+                config_list.forEach(c => {
+                    if (c.operator_type === "MNO") mno_config = c
+                    else if (c.operator_type === "IPTSP") iptsp_config = c
+                })
+            }
+        });
+
+        $("#operator_type").change(function(){
+            let $option = $(this).find('option:selected')
+            let value = $option.val()
+            let text = $option.text()
+
+            emptyFormValues()
+
+            if(value === "MNO") setFormValues(mno_config)
+            else if(value === "IPTSP") setFormValues(iptsp_config)
+        });
 
         //*
         // STORE DATA
@@ -144,6 +199,69 @@
             }); // AJAX END
         }); // STORE END
         //*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
