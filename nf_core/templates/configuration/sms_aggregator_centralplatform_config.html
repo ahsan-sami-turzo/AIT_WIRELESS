@@ -104,11 +104,7 @@
         }
 
         $( document ).ready(function() {
-            $("#api_key").val( "" )
-            $("#send_sms_url").val( "" )
-            $("#delivery_status_url").val( "" )
-            $("#check_balance_url").val( "" )
-            $("#check_cli_url").val( "" )
+            emptyFormValues()
 
             let config_list = {{ config_list|safe }}
             if(config_list) {
@@ -199,122 +195,6 @@
             }); // AJAX END
         }); // STORE END
         //*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 </script>

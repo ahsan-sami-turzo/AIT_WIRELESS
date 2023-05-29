@@ -287,7 +287,7 @@ class SmsAggregatorCentralPlatformConfig(models.Model):
             ("IPTSP", "IPTSP"),
         ],
         default="MNO",
-        max_length=20
+        max_length=5
     )
     send_sms_url = models.URLField(default="https://api.mnpspbd.com/a2p-sms/api/v1/send-sms")
     # URL(IPTSP)= https://api.mnpspbd.com/a2p-sms-iptsp/api/v1/send-sms
@@ -308,41 +308,30 @@ class SmsAggregatorCentralPlatformConfig(models.Model):
         get_latest_by = ['id']
 
 
-class SmsUserOperatorCredentialConfig(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sms_user_operator_credential_config')
-    operator_type = models.CharField(
-        choices=[
-            ("MNO", "MNO"),
-            ("IPTSP", "IPTSP"),
-        ],
-        default="MNO",
-        max_length=5
-    )
-    operator_name = models.CharField(
-        choices=[
-            ("Grameenphone", "Grameenphone"),
-            ("Banglalink", "Banglalink"),
-            ("TeleTalk", "TeleTalk"),
-            ("Robi", "Robi"),
-
-            ("Agni", "Agni"),
-            ("BanglaPhone", "BanglaPhone"),
-            ("BijoyPhone", "BijoyPhone"),
-            ("DhakaPhone", "DhakaPhone"),
-            ("NationalPhone", "NationalPhone"),
-            ("Onetel", "Onetel"),
-            ("PeoplesTel", "PeoplesTel"),
-            ("RanksTel", "RanksTel"),
-            ("ShebaPhone", "ShebaPhone"),
-            ("Telebarta", "Telebarta"),
-        ],
-        blank=False,
-        max_length=20
-    )
+class SmsAggregatorOperatorConfig(models.Model):
+    """
+    SMS Configuration for AMBALAWIRELESS-MNO/IPTSP
+    """
+    operator_type = models.ForeignKey(SmsAggregatorCentralPlatformConfig, on_delete=models.CASCADE)
+    operator_name = models.CharField(blank=False, null=False, max_length=20)
     operator_prefix = models.CharField(max_length=4, unique=True)
     username = models.CharField(max_length=20)
     password = models.CharField(max_length=20)
     bill_msisdn = models.CharField(max_length=20)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = True
+        db_table = "sms_aggregator_operator_config"
+        verbose_name = 'SMS Aggregator MNO/IPTSP Config'
+        indexes = [models.Index(fields=['operator_prefix'])]
+        get_latest_by = ['id']
+
+
+class SmsUserOperatorCredentialConfig(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    operator = models.ForeignKey(SmsAggregatorOperatorConfig, on_delete=models.CASCADE, blank=True, null=True)
     is_masking_enabled = models.BooleanField(default=False)
     cli = models.CharField(max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -352,14 +341,14 @@ class SmsUserOperatorCredentialConfig(models.Model):
         managed = True
         db_table = "sms_user_operator_credential_config"
         verbose_name = 'SMS User Operator Credential Config'
-        indexes = [models.Index(fields=['user', 'operator_name'])]
+        indexes = [models.Index(fields=['user', 'operator'])]
 
 
 class SmsUserDestinationConfig(models.Model):
     """
     SMS Configuration for Destination
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sms_user_destination_config')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     destination_operator_name = models.CharField(
         choices=[
             ("Grameenphone", "Grameenphone"),
@@ -368,10 +357,11 @@ class SmsUserDestinationConfig(models.Model):
             ("Robi", "Robi")
         ],
         blank=False,
+        null=False,
         max_length=20
     )
     destination_operator_prefix = models.CharField(max_length=3)
-    aggregator_operator = models.ForeignKey(SmsUserOperatorCredentialConfig, on_delete=models.CASCADE, related_name='sms_user_destination_config')
+    aggregator_operator = models.ForeignKey(SmsAggregatorOperatorConfig, on_delete=models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

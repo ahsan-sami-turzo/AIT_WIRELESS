@@ -187,11 +187,12 @@ def setUserOperatorCredentialConfig(request):
     context = {
         'app_name': settings.APP_NAME,
         'page_title': "User Operator Credential Configuration",
+        'user_info': UserInfo.objects.all().order_by('id'),
         'operator_types': operator_types,
         'mno_list': mno_list,
         'iptsp_list': iptsp_list,
     }
-    return render(request, 'configuration/sms_aggregator_centralplatform_config.html', context)
+    return render(request, 'configuration/sms_user_operator_credential_config.html', context)
 
 
 @login_required
