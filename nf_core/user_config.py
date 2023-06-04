@@ -108,15 +108,6 @@ def storeAggregatorCentralPlatformConfig(request):
     if operator_type == 'MNO' and not is_valid_url(check_cli_url):
         return JsonResponse(error, safe=False)
 
-    data = {
-        'operator_type': operator_type,
-        'api_key': api_key,
-        'send_sms_url': send_sms_url,
-        'delivery_status_url': delivery_status_url,
-        'check_balance_url': check_balance_url,
-        'check_cli_url': check_cli_url
-    }
-
     try:
         config_list = list(
             SmsAggregatorCentralPlatformConfig
@@ -150,9 +141,19 @@ def storeAggregatorCentralPlatformConfig(request):
                 .objects
                 .values('operator_type', 'api_key', 'send_sms_url', 'delivery_status_url', 'check_balance_url', 'check_cli_url')
             )
-            return JsonResponse(config, safe=False)
+            msg = {
+                'code': 200,
+                'message': 'Stored successfully',
+                'config': config
+            }
+            return JsonResponse(msg, safe=False)
         else:
-            return JsonResponse(config_list, safe=False)
+            msg = {
+                'code': 200,
+                'message': 'Already exists',
+                'config': config_list
+            }
+            return JsonResponse(msg, safe=False)
     except Exception as e:
         return JsonResponse(str(e), safe=False)
 

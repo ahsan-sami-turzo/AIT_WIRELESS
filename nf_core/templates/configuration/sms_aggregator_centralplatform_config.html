@@ -187,7 +187,7 @@
                 dataType: 'json',
                 data: data,
                 success: function( response ) {
-                    console.log( response )
+                    toastr.success( response.message )
                 },
                 error: function ( error ) {
                     toastr.error("Something Went Wrong")
@@ -195,6 +195,7 @@
             }); // AJAX END
         }); // STORE END
         //*/
+
 
 
 </script>

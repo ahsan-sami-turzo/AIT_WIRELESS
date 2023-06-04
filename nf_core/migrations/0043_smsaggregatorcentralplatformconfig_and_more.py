@@ -48,11 +48,6 @@ class Migration(migrations.Migration):
                 'managed': True,
             },
         ),
-        # migrations.AddField(
-        #     model_name='smsqueuehandler',
-        #     name='updated_at',
-        #     field=models.DateTimeField(auto_now=True),
-        # ),
         migrations.CreateModel(
             name='SmsUserOperatorCredentialConfig',
             fields=[
