@@ -1,0 +1,55 @@
+9610 – ADN Telecom
+9606 – Agni Systems Ltd
+9611 - Amber IT (Dhaka Com)
+9666 – BDCom-Kotha
+9609 – BEXIMCO (BOL)
+9677 – BRACNet Limited
+9696 - BTCL (Alaap)
+9602 – BTEL
+9619 - Chittagong Online LTD 
+9669 – ConnectTel
+9604 – FUSION NET
+9613 – GETCO Online
+9639 – ICC Communication 
+9633 – IDEA Networks And Communications Limited
+9638 - Intercloud Limited
+9678 – Link3 Technologies LTD.
+9612 – MetroNet
+9614 – NextFone
+9643 - Race Online Ltd
+9654 - Tele Bangla
+9601 - UberNet
+
+
+35 – Bangla Phone
+60 – Bijoy Phone
+66 – Dhaka Phone
+37 – National Phone
+64 – Onetel
+38 – PeoplesTel
+44 – RanksTel
+42 - Sheba Phone
+36 – Telebarta
+
+
+("9610", "ADN Telecom"),
+("9606", "Agni Systems Ltd"),
+("9611", "Amber IT-Dhaka Com"),
+("9666", "BDCom-Kotha"),
+("9609", "BEXIMCO-BOL"),
+("9677", "BRACNet Ltd"),
+("9696", "BTCL-Alaap"),
+("9602", "BTEL"),
+("9619", "Chittagong Online Ltd"),
+("9669", "ConnectTel"),
+("9604", "FUSION NET"),
+("9613", "GETCO Online"),
+("9639", "ICC Communication"),
+("9633", "IDEA Networks And Communications Ltd"),
+("9638", "Intercloud Ltd"),
+("9678", "Link3 Technologies Ltd"),
+("9612", "MetroNet"),
+("9614", "NextFone"),
+("9643", "Race Online Ltd"),
+("9654", "Tele Bangla"),
+("9601", "UberNet"),

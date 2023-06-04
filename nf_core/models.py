@@ -370,3 +370,26 @@ class SmsUserDestinationConfig(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['user', 'destination_operator_prefix'], name='unique_user_destinationoperator')
         ]
+
+
+class SmsOperatorList(models.Model):
+    """
+    MNO/IPTSP LIST
+    """
+    operator_type = models.CharField(
+        choices=[
+            ("MNO", "MNO"),
+            ("IPTSP", "IPTSP"),
+        ],
+        default="MNO",
+        max_length=5
+    )
+    operator_name = models.CharField(blank=False, null=False, max_length=50)
+    operator_prefix = models.CharField(max_length=4)
+
+    class Meta:
+        managed = True
+        db_table = "sms_config_operator_list"
+        constraints = [
+            models.UniqueConstraint(fields=['operator_prefix'], name='unique_operator_prefix')
+        ]

@@ -45,42 +45,19 @@ def setAggregatorCentralPlatformConfig(request):
         "MNO",
         "IPTSP",
     ]
-    mno_list = [
-        "Grameenphone",
-        "Banglalink",
-        "TeleTalk",
-        "Robi"
-    ]
-    iptsp_list = [
-        "Agni",
-        "BanglaPhone",
-        "BijoyPhone",
-        "DhakaPhone",
-        "NationalPhone",
-        "Onetel",
-        "PeoplesTel",
-        "RanksTel",
-        "ShebaPhone",
-        "Telebarta",
-    ]
-
     config_list = list(
         SmsAggregatorCentralPlatformConfig
         .objects
         .values('operator_type', 'api_key', 'send_sms_url', 'delivery_status_url', 'check_balance_url', 'check_cli_url')
     )
     config_len = len(config_list)
-
     context = {
         'app_name': settings.APP_NAME,
         'page_title': "Aggregator Central Platform Configuration",
         'operator_types': operator_types,
-        'mno_list': mno_list,
-        'iptsp_list': iptsp_list,
         'config_len': config_len,
         'config_list': SafeString(config_list)
     }
-
     return render(request, 'configuration/sms_config_aggregator_centralplatform.html', context)
 
 
@@ -163,37 +140,15 @@ def setAggregatorOperatorCredentialConfig(request):
     """
     SMS Configuration for User Operator Credentials
     """
-    operator_types = [
-        "MNO",
-        "IPTSP",
-    ]
-    mno_list = [
-        "Grameenphone",
-        "Banglalink",
-        "TeleTalk",
-        "Robi"
-    ]
-    iptsp_list = [
-        "Agni",
-        "BanglaPhone",
-        "BijoyPhone",
-        "DhakaPhone",
-        "NationalPhone",
-        "Onetel",
-        "PeoplesTel",
-        "RanksTel",
-        "ShebaPhone",
-        "Telebarta",
-    ]
     context = {
         'app_name': settings.APP_NAME,
         'page_title': "Aggregator Operator Credential Configuration",
-        'user_info': UserInfo.objects.all().order_by('id'),
-        'operator_types': operator_types,
-        'mno_list': mno_list,
-        'iptsp_list': iptsp_list,
+        'operator_types': getOperatorTypes(),
+        'all_operator_list': getOperatorList(),
+        'mno_list': getOperatorList("MNO"),
+        'iptsp_list': getOperatorList("IPTSP"),
     }
-    
+
     return render(request, 'configuration/sms_config_aggregator_operator_credential.html', context)
 
 
@@ -201,3 +156,19 @@ def setAggregatorOperatorCredentialConfig(request):
 @csrf_exempt
 def storeAggregatorOperatorCredentialConfig(request):
     return JsonResponse(str('aaa'), safe=False)
+
+
+def getOperatorTypes():
+    return list(SmsAggregatorCentralPlatformConfig.objects.filter(operator_type="MNO").values('id', 'operator_type').order_by('-id')[:1]) \
+        + list(SmsAggregatorCentralPlatformConfig.objects.filter(operator_type="IPTSP").values('id', 'operator_type').order_by('-id')[:1])
+
+
+def getOperatorList(operator_type=""):
+    if not operator_type:
+        return list(
+            SmsOperatorList.objects.values('operator_type', 'operator_name', 'operator_prefix')
+        )
+    else:
+        return list(
+            SmsOperatorList.objects.filter(operator_type=operator_type).values('operator_type', 'operator_name', 'operator_prefix')
+        )
