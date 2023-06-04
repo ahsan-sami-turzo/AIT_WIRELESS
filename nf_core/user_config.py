@@ -114,9 +114,7 @@ def storeAggregatorCentralPlatformConfig(request):
             config.save()
 
             config = list(
-                SmsAggregatorCentralPlatformConfig
-                .objects
-                .values('operator_type', 'api_key', 'send_sms_url', 'delivery_status_url', 'check_balance_url', 'check_cli_url')
+                SmsAggregatorCentralPlatformConfig.objects.values('operator_type', 'api_key', 'send_sms_url', 'delivery_status_url', 'check_balance_url', 'check_cli_url')
             )
             msg = {
                 'code': 200,
@@ -155,7 +153,59 @@ def setAggregatorOperatorCredentialConfig(request):
 @login_required
 @csrf_exempt
 def storeAggregatorOperatorCredentialConfig(request):
-    return JsonResponse(str('aaa'), safe=False)
+    operator_type = request.POST['operator_type']
+    operator_name = request.POST['operator_name']
+    operator_prefix = request.POST['operator_prefix']
+    username = request.POST['username']
+    password = request.POST['password']
+    bill_msisdn = request.POST['bill_msisdn']
+
+    try:
+        config_list = list(
+            SmsAggregatorOperatorConfig
+            .objects
+            .all()
+            .filter(
+                operator_type=operator_type,
+                operator_name=operator_name,
+                operator_prefix=operator_prefix,
+                username=username,
+                password=password,
+                bill_msisdn=bill_msisdn
+            )
+            .values('operator_type', 'operator_name', 'operator_prefix', 'username', 'password', 'bill_msisdn')
+        )
+
+        config_len = len(config_list)
+
+        if config_len == 0:
+            config = SmsAggregatorOperatorConfig()
+            config.operator_type = operator_type
+            config.operator_name = operator_name
+            config.operator_prefix = operator_prefix
+            config.username = username
+            config.password = password
+            config.bill_msisdn = bill_msisdn
+            config.save()
+
+            config = list(
+                SmsAggregatorOperatorConfig.objects.values('operator_type', 'operator_name', 'operator_prefix', 'username', 'password', 'bill_msisdn')
+            )
+            msg = {
+                'code': 200,
+                'message': 'Stored successfully',
+                'config': config
+            }
+            return JsonResponse(msg, safe=False)
+        else:
+            msg = {
+                'code': 200,
+                'message': 'Already exists',
+                'config': config_list
+            }
+            return JsonResponse(msg, safe=False)
+    except Exception as e:
+        return JsonResponse(str(e), safe=False)
 
 
 def getOperatorTypes():

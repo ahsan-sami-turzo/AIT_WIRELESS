@@ -130,6 +130,7 @@
         // STORE DATA
         $("#btnStore").click(function(e) {
             e.preventDefault()
+            $(this).prop("disabled",true)
 
             let operator_type = $("#operator_type").find('option:selected').val()
             let api_key = $("#api_key").val()
@@ -148,26 +149,31 @@
             if( !api_key ) {
                 toastr.warning("Please Input From API Key")
                 $("#api_key").attr('style', "border-radius: .5rem; border:#FF0000 1px solid;")
+                $(this).prop("disabled",false)
                 return
             }
             if( !send_sms_url || !isUrlValid(send_sms_url) ) {
                 toastr.warning("Please Input Valid URL")
                 $("#send_sms_url").attr('style', "border-radius: 5px; border:#FF0000 1px solid;")
+                $(this).prop("disabled",false)
                 return
             }
             if( !delivery_status_url || !isUrlValid(delivery_status_url) ) {
                 toastr.warning("Please Input Valid URL")
                 $("#delivery_status_url").attr('style', "border-radius: 5px; border:#FF0000 1px solid;")
+                $(this).prop("disabled",false)
                 return
             }
             if( !check_balance_url || !isUrlValid(check_balance_url) ) {
                 toastr.warning("Please Input Valid URL")
                 $("#check_balance_url").attr('style', "border-radius: 5px; border:#FF0000 1px solid;")
+                $(this).prop("disabled",false)
                 return
             }
             if( operator_type == 'MNO' && (!check_cli_url || !isUrlValid(check_cli_url)) ) {
                 toastr.warning("Please Input Valid URL")
                 $("#check_cli_url").attr('style', "border-radius: 5px; border:#FF0000 1px solid;")
+                $(this).prop("disabled",false)
                 return
             }
 
@@ -188,13 +194,18 @@
                 data: data,
                 success: function( response ) {
                     toastr.success( response.message )
+                    setTimeout(function() { location.reload() }, 500)
                 },
                 error: function ( error ) {
                     toastr.error("Something Went Wrong")
+                    setTimeout(function() { $(this).prop("disabled",false) }, 500)
                 }
             }); // AJAX END
         }); // STORE END
         //*/
+
+
+
 
 
 
