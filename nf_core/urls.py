@@ -70,7 +70,7 @@ urlpatterns = [
     path('configuration/aggregator/centralplatform', setAggregatorCentralPlatformConfig, name='aggregator.centralplatform.configuration'),
     path('configuration/aggregator/centralplatform/store', storeAggregatorCentralPlatformConfig, name='aggregator.centralplatform.configuration.store'),
 
-    # Aggregator Central Platform Config
-    path('configuration/user/operator/credential', setUserOperatorCredentialConfig, name='user.operator.credential.configuration'),
-    path('configuration/user/operator/credential/store', storeUserOperatorCredentialConfig, name='user.operator.credential.configuration.store'),
+    # Aggregator Operator Credential Config
+    path('configuration/aggregator/operator/credential', setAggregatorOperatorCredentialConfig, name='aggregator.operator.credential.configuration'),
+    path('configuration/aggregator/operator/credential/store', storeAggregatorOperatorCredentialConfig, name='aggregator.operator.credential.configuration.store'),
 ]

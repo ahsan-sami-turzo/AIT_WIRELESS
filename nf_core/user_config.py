@@ -81,7 +81,7 @@ def setAggregatorCentralPlatformConfig(request):
         'config_list': SafeString(config_list)
     }
 
-    return render(request, 'configuration/sms_aggregator_centralplatform_config.html', context)
+    return render(request, 'configuration/sms_config_aggregator_centralplatform.html', context)
 
 
 @login_required
@@ -159,7 +159,7 @@ def storeAggregatorCentralPlatformConfig(request):
 
 
 @login_required
-def setUserOperatorCredentialConfig(request):
+def setAggregatorOperatorCredentialConfig(request):
     """
     SMS Configuration for User Operator Credentials
     """
@@ -187,16 +187,17 @@ def setUserOperatorCredentialConfig(request):
     ]
     context = {
         'app_name': settings.APP_NAME,
-        'page_title': "User Operator Credential Configuration",
+        'page_title': "Aggregator Operator Credential Configuration",
         'user_info': UserInfo.objects.all().order_by('id'),
         'operator_types': operator_types,
         'mno_list': mno_list,
         'iptsp_list': iptsp_list,
     }
-    return render(request, 'configuration/sms_user_operator_credential_config.html', context)
+    
+    return render(request, 'configuration/sms_config_aggregator_operator_credential.html', context)
 
 
 @login_required
 @csrf_exempt
-def storeUserOperatorCredentialConfig(request):
+def storeAggregatorOperatorCredentialConfig(request):
     return JsonResponse(str('aaa'), safe=False)
