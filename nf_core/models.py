@@ -302,10 +302,8 @@ class SmsAggregatorCentralPlatformConfig(models.Model):
 
     class Meta:
         managed = True
-        db_table = "sms_aggregator_centralplatform_config"
-        verbose_name = 'SMS Aggregator Central Platform Config'
+        db_table = "sms_config_aggregator_centralplatform"
         indexes = [models.Index(fields=['operator_type'])]
-        get_latest_by = ['id']
 
 
 class SmsAggregatorOperatorConfig(models.Model):
@@ -323,10 +321,8 @@ class SmsAggregatorOperatorConfig(models.Model):
 
     class Meta:
         managed = True
-        db_table = "sms_aggregator_operator_config"
-        verbose_name = 'SMS Aggregator MNO/IPTSP Config'
+        db_table = "sms_config_aggregator_operator"
         indexes = [models.Index(fields=['operator_prefix'])]
-        get_latest_by = ['id']
 
 
 class SmsUserOperatorCredentialConfig(models.Model):
@@ -339,9 +335,11 @@ class SmsUserOperatorCredentialConfig(models.Model):
 
     class Meta:
         managed = True
-        db_table = "sms_user_operator_credential_config"
-        verbose_name = 'SMS User Operator Credential Config'
+        db_table = "sms_config_user_operator_credential"
         indexes = [models.Index(fields=['user', 'operator'])]
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'operator'], name='unique_user_operator')
+        ]
 
 
 class SmsUserDestinationConfig(models.Model):
@@ -367,6 +365,8 @@ class SmsUserDestinationConfig(models.Model):
 
     class Meta:
         managed = True
-        db_table = "sms_user_destination_config"
-        verbose_name = 'SMS User Destination Config'
+        db_table = "sms_config_user_destination_operator"
         indexes = [models.Index(fields=['user', 'destination_operator_prefix'])]
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'destination_operator_prefix'], name='unique_user_destinationoperator')
+        ]
