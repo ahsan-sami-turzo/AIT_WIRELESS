@@ -53,3 +53,13 @@
 ("9643", "Race Online Ltd"),
 ("9654", "Tele Bangla"),
 ("9601", "UberNet"),
+
+
+INSERT INTO sms_config_operator_list VALUES
+(1, 'MNO', 'Grameenphone', '013'),
+(2, 'MNO', 'Grameenphone', '017'),
+(3, 'MNO', 'Airtel', '016'),
+(4, 'MNO', 'Robi', '018'),
+(5, 'MNO', 'Banglalink', '014'),
+(6, 'MNO', 'Banglalink', '019'),
+(7, 'MNO', 'Teletalk', '015');

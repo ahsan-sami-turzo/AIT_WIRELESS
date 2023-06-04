@@ -130,7 +130,11 @@ def storeAggregatorCentralPlatformConfig(request):
             }
             return JsonResponse(msg, safe=False)
     except Exception as e:
-        return JsonResponse(str(e), safe=False)
+        error = {
+            'code': 500,
+            'message': str(e)
+        }
+        return JsonResponse(error, safe=False)
 
 
 @login_required
@@ -150,64 +154,6 @@ def setAggregatorOperatorCredentialConfig(request):
     return render(request, 'configuration/sms_config_aggregator_operator_credential.html', context)
 
 
-@login_required
-@csrf_exempt
-def storeAggregatorOperatorCredentialConfig(request):
-    operator_type = request.POST['operator_type']
-    operator_name = request.POST['operator_name']
-    operator_prefix = request.POST['operator_prefix']
-    username = request.POST['username']
-    password = request.POST['password']
-    bill_msisdn = request.POST['bill_msisdn']
-
-    try:
-        config_list = list(
-            SmsAggregatorOperatorConfig
-            .objects
-            .all()
-            .filter(
-                operator_type=operator_type,
-                operator_name=operator_name,
-                operator_prefix=operator_prefix,
-                username=username,
-                password=password,
-                bill_msisdn=bill_msisdn
-            )
-            .values('operator_type', 'operator_name', 'operator_prefix', 'username', 'password', 'bill_msisdn')
-        )
-
-        config_len = len(config_list)
-
-        if config_len == 0:
-            config = SmsAggregatorOperatorConfig()
-            config.operator_type = operator_type
-            config.operator_name = operator_name
-            config.operator_prefix = operator_prefix
-            config.username = username
-            config.password = password
-            config.bill_msisdn = bill_msisdn
-            config.save()
-
-            config = list(
-                SmsAggregatorOperatorConfig.objects.values('operator_type', 'operator_name', 'operator_prefix', 'username', 'password', 'bill_msisdn')
-            )
-            msg = {
-                'code': 200,
-                'message': 'Stored successfully',
-                'config': config
-            }
-            return JsonResponse(msg, safe=False)
-        else:
-            msg = {
-                'code': 200,
-                'message': 'Already exists',
-                'config': config_list
-            }
-            return JsonResponse(msg, safe=False)
-    except Exception as e:
-        return JsonResponse(str(e), safe=False)
-
-
 def getOperatorTypes():
     return list(SmsAggregatorCentralPlatformConfig.objects.filter(operator_type="MNO").values('id', 'operator_type').order_by('-id')[:1]) \
         + list(SmsAggregatorCentralPlatformConfig.objects.filter(operator_type="IPTSP").values('id', 'operator_type').order_by('-id')[:1])
@@ -215,10 +161,85 @@ def getOperatorTypes():
 
 def getOperatorList(operator_type=""):
     if not operator_type:
+        return list(SmsOperatorList.objects.values('operator_type', 'operator_name', 'operator_prefix'))
+    else:
+        return list(SmsOperatorList.objects.filter(operator_type=operator_type).values('operator_type', 'operator_name', 'operator_prefix'))
+
+
+def getOperatorCredentials(operator_name=""):
+    if not operator_name:
         return list(
-            SmsOperatorList.objects.values('operator_type', 'operator_name', 'operator_prefix')
+            SmsAggregatorOperatorConfig.objects
+            .values('operator_type', 'operator_name', 'operator_prefix', 'username', 'password', 'bill_msisdn')
         )
     else:
         return list(
-            SmsOperatorList.objects.filter(operator_type=operator_type).values('operator_type', 'operator_name', 'operator_prefix')
+            SmsAggregatorOperatorConfig.objects.filter(operator_type=operator_name)
+            .values('operator_type', 'operator_name', 'operator_prefix', 'username', 'password', 'bill_msisdn')
         )
+
+
+@csrf_exempt
+def getAggregatorOperatorCredentialConfig(request):
+    try:
+        operator_name = request.POST['selected_operator_name']
+        config = list(SmsAggregatorOperatorConfig.objects.filter(operator_name=operator_name).values('username', 'password', 'bill_msisdn'))
+        return JsonResponse(config, safe=False)
+    except Exception as e:
+        error = {
+            'code': 500,
+            'message': str(e)
+        }
+        return JsonResponse(error, safe=False)
+
+
+@login_required
+@csrf_exempt
+def storeAggregatorOperatorCredentialConfig(request):
+    operator_type = request.POST['operator_type']
+    operator_name = request.POST['operator_name']
+    username = request.POST['username']
+    password = request.POST['password']
+    bill_msisdn = request.POST['bill_msisdn']
+    operator_prefix = request.POST['operator_prefix']
+    operator_prefix_list = operator_prefix.split(",")
+
+    try:
+        for operator_prefix in operator_prefix_list:
+            config_len = len(
+                list(
+                    SmsAggregatorOperatorConfig
+                    .objects
+                    .all()
+                    .filter(
+                        operator_type=operator_type,
+                        operator_name=operator_name,
+                        operator_prefix=operator_prefix,
+                        username=username,
+                        password=password,
+                        bill_msisdn=bill_msisdn
+                    )
+                )
+            )
+
+            if config_len == 0:
+                config = SmsAggregatorOperatorConfig()
+                config.operator_type = SmsAggregatorCentralPlatformConfig.objects.get(id=operator_type)
+                config.operator_name = operator_name
+                config.operator_prefix = operator_prefix
+                config.username = username
+                config.password = password
+                config.bill_msisdn = bill_msisdn
+                config.save()
+
+        msg = {
+            'code': 200,
+            'message': 'Success'
+        }
+        return JsonResponse(msg, safe=False)
+    except Exception as e:
+        error = {
+            'code': 500,
+            'message': str(e)
+        }
+        return JsonResponse(error, safe=False)

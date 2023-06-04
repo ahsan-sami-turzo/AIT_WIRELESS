@@ -72,5 +72,6 @@ urlpatterns = [
 
     # Aggregator Operator Credential Config
     path('configuration/aggregator/operator/credential', setAggregatorOperatorCredentialConfig, name='aggregator.operator.credential.configuration'),
+    path('configuration/aggregator/operator/credential/get', getAggregatorOperatorCredentialConfig, name='aggregator.operator.credential.configuration.get'),
     path('configuration/aggregator/operator/credential/store', storeAggregatorOperatorCredentialConfig, name='aggregator.operator.credential.configuration.store'),
 ]
