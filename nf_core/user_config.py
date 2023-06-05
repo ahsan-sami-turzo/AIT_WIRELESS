@@ -183,7 +183,9 @@ def getOperatorCredentials(operator_name=""):
 def getAggregatorOperatorCredentialConfig(request):
     try:
         operator_name = request.POST['selected_operator_name']
-        config = list(SmsAggregatorOperatorConfig.objects.filter(operator_name=operator_name).values('username', 'password', 'bill_msisdn'))
+        config = list(
+            SmsAggregatorOperatorConfig.objects.filter(operator_name=operator_name).values('id', 'username', 'password', 'bill_msisdn').order_by('-id')[:1]
+        )
         return JsonResponse(config, safe=False)
     except Exception as e:
         error = {
