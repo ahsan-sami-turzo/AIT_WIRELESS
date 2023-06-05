@@ -280,7 +280,7 @@ class SmsAggregatorCentralPlatformConfig(models.Model):
     """
     SMS Configuration for AMBALAWIRELESS-INFOZILLION
     """
-    api_key = models.CharField(max_length=50)
+    api_key = models.CharField(max_length=200)
     operator_type = models.CharField(
         choices=[
             ("MNO", "MNO"),
@@ -311,11 +311,11 @@ class SmsAggregatorOperatorConfig(models.Model):
     SMS Configuration for AMBALAWIRELESS-MNO/IPTSP
     """
     operator_type = models.ForeignKey(SmsAggregatorCentralPlatformConfig, on_delete=models.CASCADE)
-    operator_name = models.CharField(blank=False, null=False, max_length=20)
-    operator_prefix = models.CharField(max_length=4, unique=True)
-    username = models.CharField(max_length=20)
-    password = models.CharField(max_length=20)
-    bill_msisdn = models.CharField(max_length=20)
+    operator_name = models.CharField(blank=False, null=False, max_length=100)
+    operator_prefix = models.CharField(max_length=10)
+    username = models.CharField(max_length=100)
+    password = models.CharField(max_length=100)
+    bill_msisdn = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -329,7 +329,7 @@ class SmsUserOperatorCredentialConfig(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     operator = models.ForeignKey(SmsAggregatorOperatorConfig, on_delete=models.CASCADE, blank=True, null=True)
     is_masking_enabled = models.BooleanField(default=False)
-    cli = models.CharField(max_length=20)
+    cli = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -356,9 +356,9 @@ class SmsUserDestinationConfig(models.Model):
         ],
         blank=False,
         null=False,
-        max_length=20
+        max_length=100
     )
-    destination_operator_prefix = models.CharField(max_length=3)
+    destination_operator_prefix = models.CharField(max_length=10)
     aggregator_operator = models.ForeignKey(SmsAggregatorOperatorConfig, on_delete=models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
