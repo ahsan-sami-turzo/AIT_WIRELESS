@@ -25,6 +25,10 @@ from pprint import pprint
 from operator import itemgetter
 from nf_core.models import User, SmsAggregatorCentralPlatformConfig
 
+"""
+HELPERS
+"""
+
 
 def is_valid_url(to_validate: str) -> bool:
     validator = URLValidator()
@@ -34,6 +38,11 @@ def is_valid_url(to_validate: str) -> bool:
     except ValidationError as exception:
         print(exception)
         return False
+
+
+"""
+AGGREGATOR - CENTRAL PLATFORM CONFIG
+"""
 
 
 @login_required
@@ -137,10 +146,15 @@ def storeAggregatorCentralPlatformConfig(request):
         return JsonResponse(error, safe=False)
 
 
+"""
+AGGREGATOR - OPERATOR CONFIG
+"""
+
+
 @login_required
 def setAggregatorOperatorCredentialConfig(request):
     """
-    SMS Configuration for User Operator Credentials
+    SMS Configuration for Aggregator Operator Credentials
     """
     context = {
         'app_name': settings.APP_NAME,
@@ -245,3 +259,32 @@ def storeAggregatorOperatorCredentialConfig(request):
             'message': str(e)
         }
         return JsonResponse(error, safe=False)
+
+
+"""
+USER - OPERATOR CONFIG
+"""
+
+
+@login_required
+def setUserCliConfig(request):
+    """
+    SMS Configuration for User Operator
+    """
+    context = {
+        'app_name': settings.APP_NAME,
+        'page_title': "User Cli Configuration",
+        'user_info': UserInfo.objects.all().order_by('id'),
+    }
+
+    return render(request, 'configuration/sms_config_aggregator_operator_credential.html', context)
+
+
+@login_required
+@csrf_exempt
+def storeUserCliConfig(request):
+    error = {
+        'code': 500,
+        'message': str("e")
+    }
+    return JsonResponse(error, safe=False)

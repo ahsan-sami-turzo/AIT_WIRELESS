@@ -312,10 +312,11 @@ class SmsAggregatorOperatorConfig(models.Model):
     """
     operator_type = models.ForeignKey(SmsAggregatorCentralPlatformConfig, on_delete=models.CASCADE)
     operator_name = models.CharField(blank=False, null=False, max_length=100)
-    operator_prefix = models.CharField(max_length=10)
-    username = models.CharField(max_length=100)
-    password = models.CharField(max_length=100)
-    bill_msisdn = models.CharField(max_length=100)
+    operator_prefix = models.CharField(blank=False, null=False, max_length=10)
+    username = models.CharField(blank=False, null=False, max_length=100)
+    password = models.CharField(blank=False, null=False, max_length=100)
+    bill_msisdn = models.CharField(blank=False, null=False, max_length=100)
+    default_cli = models.CharField(blank=False, null=False, max_length=100, default="AMBALA")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -325,20 +326,17 @@ class SmsAggregatorOperatorConfig(models.Model):
         indexes = [models.Index(fields=['operator_prefix'])]
 
 
-class SmsUserOperatorCredentialConfig(models.Model):
+class SmsUserCliConfig(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    operator = models.ForeignKey(SmsAggregatorOperatorConfig, on_delete=models.CASCADE, blank=True, null=True)
-    is_masking_enabled = models.BooleanField(default=False)
     cli = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = True
-        db_table = "sms_config_user_operator_credential"
-        indexes = [models.Index(fields=['user', 'operator'])]
+        db_table = "sms_config_user_cli"
         constraints = [
-            models.UniqueConstraint(fields=['user', 'operator'], name='unique_user_operator')
+            models.UniqueConstraint(fields=['user', 'cli'], name='unique_user_cli')
         ]
 
 

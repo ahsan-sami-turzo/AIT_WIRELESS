@@ -64,8 +64,8 @@ urlpatterns = [
     path('report/gateway-traffic-report', gatewayTrafficReport, name='nf.gateway.traffic.report'),
     path('local-api/gateway-traffic-report/ssr', gatewayTrafficReportSSR, name='nf.gateway.traffic.report.ssr'),
 
-    # SMS USER CONFIG
-    # Date: 24-05-2023
+    # SMS CONFIG
+    # Date: 24-05-2023 - 06-06-2023
     # Aggregator Central Platform Config
     path('configuration/aggregator/centralplatform', setAggregatorCentralPlatformConfig, name='aggregator.centralplatform.configuration'),
     path('configuration/aggregator/centralplatform/store', storeAggregatorCentralPlatformConfig, name='aggregator.centralplatform.configuration.store'),
@@ -74,4 +74,8 @@ urlpatterns = [
     path('configuration/aggregator/operator/credential', setAggregatorOperatorCredentialConfig, name='aggregator.operator.credential.configuration'),
     path('configuration/aggregator/operator/credential/get', getAggregatorOperatorCredentialConfig, name='aggregator.operator.credential.configuration.get'),
     path('configuration/aggregator/operator/credential/store', storeAggregatorOperatorCredentialConfig, name='aggregator.operator.credential.configuration.store'),
+
+    # User CLI Config
+    path('configuration/user/cli', setUserCliConfig, name='user.cli.configuration'),
+    path('configuration/user/cli/store', storeUserCliConfig, name='user.cli.configuration.store'),
 ]
