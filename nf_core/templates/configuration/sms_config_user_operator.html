@@ -54,48 +54,27 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
 <script>
-
         function enableStoreButton() {
             $('#btnStore').attr("disabled", false)
             $('#btnStore').removeAttr("disabled")
         }
 
+        /*
         function emptyFormValues() {
             $("#cli").val( "" )
         }
 
         function setFormValues(obj) {
             $("#cli").val(obj.cli)
-        }
+        } //*/
 
         $( document ).ready(function() {
             console.clear()
             emptyFormValues()
             let user_info = {{ user_info|safe }}
-            let user_cli_list = {{ user_cli_list|safe }}
-        });
-
-        $("#user_id").change(function() {
-            emptyFormValues()
-            let user_id = $(this).find('option:selected').val()
-            let user_cli_list = {{ user_cli_list|safe }}
-            if( user_id ) {
-                // AJAX START
-                let url = '{% url 'user.cli.configuration.get' %}'
-                let data = { user_id }
-                $.ajax({
-                    type: 'post',
-                    url: url,
-                    dataType: 'json',
-                    data: data,
-                    success: function( response ) {
-                        console.log( response )
-                        if(response.length > 0) {
-                            $("#cli").val(response[0].cli)
-                        }
-                    }
-                }); // AJAX END
-            } // IF END
+            let destination_operator_list = {{ destination_operator_list|safe }}
+            let operator_list = {{ operator_list|safe }}
+            console.log(user_info,destination_operator_list,operator_list)
         });
 
         // STORE DATA
@@ -148,6 +127,9 @@
                 }
             }); // AJAX END
         }); // STORE END
+
+
+
 
 
 </script>

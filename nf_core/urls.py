@@ -66,6 +66,7 @@ urlpatterns = [
 
     # SMS CONFIG
     # Date: 24-05-2023 - 06-06-2023
+
     # Aggregator Central Platform Config
     path('configuration/aggregator/centralplatform', setAggregatorCentralPlatformConfig, name='aggregator.centralplatform.configuration'),
     path('configuration/aggregator/centralplatform/store', storeAggregatorCentralPlatformConfig, name='aggregator.centralplatform.configuration.store'),
@@ -79,4 +80,9 @@ urlpatterns = [
     path('configuration/user/cli', setUserCliConfig, name='user.cli.configuration'),
     path('configuration/user/cli/get', getUserCliConfig, name='user.cli.configuration.get'),
     path('configuration/user/cli/store', storeUserCliConfig, name='user.cli.configuration.store'),
+
+    # User Destination Operator Config
+    path('configuration/user/operator', setUserOperatorConfig, name='user.operator.configuration'),
+    path('configuration/user/operator/get', getUserOperatorConfig, name='user.operator.configuration.get'),
+    path('configuration/user/operator/store', storeUserOperatorConfig, name='user.operator.configuration.store'),
 ]

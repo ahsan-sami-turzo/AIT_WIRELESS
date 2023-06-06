@@ -1,29 +1,14 @@
-import json
-import os.path
-
-from django.contrib import messages
-from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group
-from django.db.models import Q
 from django.shortcuts import render, HttpResponse
 from django.utils.safestring import SafeString
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.forms import PasswordChangeForm, AdminPasswordChangeForm
-from rest_framework.authtoken.models import Token
-from django.db.models import Sum, Count
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 
 from .decorator import *
-from .forms import *
 from .helper import *
 
-from datetime import datetime, timedelta
-from pprint import pprint
-from operator import itemgetter
-from nf_core.models import User, SmsAggregatorCentralPlatformConfig
+from nf_core.models import *
 
 """
 HELPERS
@@ -38,6 +23,15 @@ def is_valid_url(to_validate: str) -> bool:
     except ValidationError as exception:
         print(exception)
         return False
+
+
+def get_BD_MNO_List() -> list:
+    return [
+        ("Grameenphone", "Grameenphone"),
+        ("Banglalink", "Banglalink"),
+        ("TeleTalk", "TeleTalk"),
+        ("Robi", "Robi")
+    ]
 
 
 """
@@ -265,7 +259,7 @@ def storeAggregatorOperatorCredentialConfig(request):
 
 
 """
-USER - OPERATOR CONFIG
+USER - CLI CONFIG
 """
 
 
@@ -293,7 +287,7 @@ def getUserCliConfig(request):
 @login_required
 def setUserCliConfig(request):
     """
-    SMS Configuration for User Operator
+    SMS Configuration for User CLI
     """
     context = {
         'app_name': settings.APP_NAME,
@@ -335,3 +329,34 @@ def storeUserCliConfig(request):
             'message': str(e)
         }
         return JsonResponse(error, safe=False)
+
+
+"""
+USER DESTINATION OPERATOR CONFIG
+"""
+
+
+@login_required
+def setUserOperatorConfig(request):
+    """
+    SMS Configuration for User Operator
+    """
+    context = {
+        'app_name': settings.APP_NAME,
+        'page_title': "User Destination Operator Configuration",
+        'user_info': getUserInfo(),
+        'destination_operator_list': get_BD_MNO_List(),
+        'operator_list': getOperatorList()
+    }
+    return render(request, 'configuration/sms_config_user_operator.html', context)
+
+
+@csrf_exempt
+def getUserOperatorConfig(request):
+    return 0
+
+
+@login_required
+@csrf_exempt
+def storeUserOperatorConfig(request):
+    return 0

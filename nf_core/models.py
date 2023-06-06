@@ -340,22 +340,12 @@ class SmsUserCliConfig(models.Model):
         ]
 
 
-class SmsUserDestinationConfig(models.Model):
+class SmsUserDestinationOperatorConfig(models.Model):
     """
     SMS Configuration for Destination
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    destination_operator_name = models.CharField(
-        choices=[
-            ("Grameenphone", "Grameenphone"),
-            ("Banglalink", "Banglalink"),
-            ("TeleTalk", "TeleTalk"),
-            ("Robi", "Robi")
-        ],
-        blank=False,
-        null=False,
-        max_length=100
-    )
+    destination_operator_name = models.CharField(blank=False, null=False, max_length=100)
     destination_operator_prefix = models.CharField(max_length=10)
     aggregator_operator = models.ForeignKey(SmsAggregatorOperatorConfig, on_delete=models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -382,8 +372,8 @@ class SmsOperatorList(models.Model):
         default="MNO",
         max_length=5
     )
-    operator_name = models.CharField(blank=False, null=False, max_length=50)
-    operator_prefix = models.CharField(max_length=4)
+    operator_name = models.CharField(blank=False, null=False, max_length=100)
+    operator_prefix = models.CharField(max_length=10)
 
     class Meta:
         managed = True
