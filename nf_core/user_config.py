@@ -184,12 +184,12 @@ def getOperatorCredentials(operator_name=""):
     if not operator_name:
         return list(
             SmsAggregatorOperatorConfig.objects
-            .values('operator_type', 'operator_name', 'operator_prefix', 'username', 'password', 'bill_msisdn')
+            .values('operator_type', 'operator_name', 'operator_prefix', 'username', 'password', 'bill_msisdn', 'default_cli')
         )
     else:
         return list(
             SmsAggregatorOperatorConfig.objects.filter(operator_type=operator_name)
-            .values('operator_type', 'operator_name', 'operator_prefix', 'username', 'password', 'bill_msisdn')
+            .values('operator_type', 'operator_name', 'operator_prefix', 'username', 'password', 'bill_msisdn', 'default_cli')
         )
 
 
@@ -198,7 +198,7 @@ def getAggregatorOperatorCredentialConfig(request):
     try:
         operator_name = request.POST['selected_operator_name']
         config = list(
-            SmsAggregatorOperatorConfig.objects.filter(operator_name=operator_name).values('id', 'username', 'password', 'bill_msisdn').order_by('-id')[:1]
+            SmsAggregatorOperatorConfig.objects.filter(operator_name=operator_name).values('id', 'username', 'password', 'bill_msisdn', 'default_cli').order_by('-id')[:1]
         )
         return JsonResponse(config, safe=False)
     except Exception as e:
@@ -217,6 +217,7 @@ def storeAggregatorOperatorCredentialConfig(request):
     username = request.POST['username']
     password = request.POST['password']
     bill_msisdn = request.POST['bill_msisdn']
+    default_cli = request.POST['default_cli']
     operator_prefix = request.POST['operator_prefix']
     operator_prefix_list = operator_prefix.split(",")
 
@@ -233,7 +234,8 @@ def storeAggregatorOperatorCredentialConfig(request):
                         operator_prefix=operator_prefix,
                         username=username,
                         password=password,
-                        bill_msisdn=bill_msisdn
+                        bill_msisdn=bill_msisdn,
+                        default_cli=default_cli
                     )
                 )
             )
@@ -246,6 +248,7 @@ def storeAggregatorOperatorCredentialConfig(request):
                 config.username = username
                 config.password = password
                 config.bill_msisdn = bill_msisdn
+                config.default_cli = default_cli
                 config.save()
 
         msg = {
@@ -266,6 +269,27 @@ USER - OPERATOR CONFIG
 """
 
 
+def getUserInfo(user_id=""):
+    if not user_id:
+        return list(UserInfo.objects.filter(user_group='User').values('id', 'user_id', 'company_name').order_by('id'))
+    else:
+        return list(UserInfo.objects.filter(id=user_id).select_related('user').values('id', 'user_id', 'company_name').order_by('-id')[:1])
+
+
+def getUserCliList(user_id=""):
+    if not user_id:
+        return list(SmsUserCliConfig.objects.values('id', 'user_id', 'cli').order_by('id'))
+    else:
+        return list(SmsUserCliConfig.objects.filter(user_id=user_id).values('id', 'user_id', 'cli').order_by('-id')[:1])
+
+
+@csrf_exempt
+def getUserCliConfig(request):
+    user_id = request.POST['user_id']
+    user_cli = getUserCliList(user_id)
+    return JsonResponse(user_cli, safe=False)
+
+
 @login_required
 def setUserCliConfig(request):
     """
@@ -273,18 +297,41 @@ def setUserCliConfig(request):
     """
     context = {
         'app_name': settings.APP_NAME,
-        'page_title': "User Cli Configuration",
-        'user_info': UserInfo.objects.all().order_by('id'),
+        'page_title': "User CLI Configuration",
+        'user_info': getUserInfo(),
+        'user_cli_list': getUserCliList()
     }
-
-    return render(request, 'configuration/sms_config_aggregator_operator_credential.html', context)
+    return render(request, 'configuration/sms_config_user_cli.html', context)
 
 
 @login_required
 @csrf_exempt
 def storeUserCliConfig(request):
-    error = {
-        'code': 500,
-        'message': str("e")
-    }
-    return JsonResponse(error, safe=False)
+    user_id = request.POST['user_id']
+    cli = request.POST['cli']
+
+    try:
+        config_len = len(list(SmsUserCliConfig.objects.filter(user_id=user_id, cli=cli).values('user_id', 'cli')))
+
+        if config_len == 0:
+            config = SmsUserCliConfig()
+            config.user_id = user_id
+            config.cli = cli
+            config.save()
+            msg = {
+                'code': 200,
+                'message': 'Stored successfully'
+            }
+            return JsonResponse(msg, safe=False)
+        else:
+            msg = {
+                'code': 200,
+                'message': 'Already exists'
+            }
+            return JsonResponse(msg, safe=False)
+    except Exception as e:
+        error = {
+            'code': 500,
+            'message': str(e)
+        }
+        return JsonResponse(error, safe=False)

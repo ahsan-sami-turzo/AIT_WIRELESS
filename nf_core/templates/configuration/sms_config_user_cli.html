@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block css %}
+{% endblock css %}
+
+{% block content %}
+<div class="page-body">
+    {% include 'layout/breadcrumb.html' %}
+    <!-- Container-fluid starts-->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                {% include 'layout/message.html' %}
+            </div>
+            <div class="col-9">
+                <form class="card" id="configForm">
+                    <div class="card-body p-4">
+                        <div class="col-sm-6 col-md-9" style="margin: 0 auto">
+
+                            <!-- USER -->
+                            <div class="mb-3">
+                                <label class="form-label">User</label>
+                                <select class="form-control js-example-basic-single" id="user_id" name="user">
+                                    <option value="">All Accounts</option>
+                                    {% for user in user_info %}
+                                    <option value="{{ user.user_id }}">{{ user.company_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- CLI -->
+                            <div class="mb-3">
+                                <label class="form-label">CLI</label>
+                                <input class="form-control" id="cli" type="text"/>
+                            </div>
+
+                            <div class="mb-3">
+                                <button class="btn btn-success" id="btnStore">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid Ends-->
+</div>
+{% endblock content %}
+
+{% block scriptcontent %}
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
+<script>
+
+        function enableStoreButton() {
+            $('#btnStore').attr("disabled", false)
+            $('#btnStore').removeAttr("disabled")
+        }
+
+        function emptyFormValues() {
+            $("#cli").val( "" )
+        }
+
+        function setFormValues(obj) {
+            $("#cli").val(obj.cli)
+        }
+
+        $( document ).ready(function() {
+            console.clear()
+            emptyFormValues()
+            let user_info = {{ user_info|safe }}
+            let user_cli_list = {{ user_cli_list|safe }}
+        });
+
+        $("#user_id").change(function() {
+            emptyFormValues()
+            let user_id = $(this).find('option:selected').val()
+            let user_cli_list = {{ user_cli_list|safe }}
+            if( user_id ) {
+                // AJAX START
+                let url = '{% url 'user.cli.configuration.get' %}'
+                let data = { user_id }
+                $.ajax({
+                    type: 'post',
+                    url: url,
+                    dataType: 'json',
+                    data: data,
+                    success: function( response ) {
+                        console.log( response )
+                        if(response.length > 0) {
+                            $("#cli").val(response[0].cli)
+                        }
+                    }
+                }); // AJAX END
+            } // IF END
+        });
+
+        // STORE DATA
+        $("#btnStore").click(function(e) {
+            e.preventDefault()
+            $(this).attr("disabled",true)
+
+            let url = '{% url 'user.cli.configuration.store' %}'
+            let user_id = $("#user_id").find('option:selected').val()
+            let cli = $("#cli").val()
+
+            $("#user_id").attr('style', "border-radius: .25rem; border:#CED4DA 1px solid;")
+            $("#cli").attr('style', "border-radius: .25rem; border:#CED4DA 1px solid;")
+
+            if( !user_id ) {
+                toastr.warning("Please Select User")
+                $("#user_id").attr('style', "border-radius: .5rem; border:#FF0000 1px solid;")
+                enableStoreButton()
+                return
+            }
+
+            if( !cli ) {
+                toastr.warning("Please Input Cli")
+                $("#cli").attr('style', "border-radius: .5rem; border:#FF0000 1px solid;")
+                enableStoreButton()
+                return
+            }
+
+            let data = {
+                user_id,
+                cli
+            }
+
+            // AJAX START
+            $.ajax({
+                type: 'post',
+                url: url,
+                dataType: 'json',
+                data: data,
+                success: function( response ) {
+                    toastr.success( response.message )
+                    setTimeout(function() { location.reload() }, 500)
+                },
+                error: function ( error ) {
+                    toastr.error("Something Went Wrong")
+                    setTimeout(function() {
+                        $('#btnStore').attr("disabled", false)
+                        $('#btnStore').removeAttr("disabled")
+                    }, 500)
+                }
+            }); // AJAX END
+        }); // STORE END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+{% endblock %}

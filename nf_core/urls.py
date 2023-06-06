@@ -77,5 +77,6 @@ urlpatterns = [
 
     # User CLI Config
     path('configuration/user/cli', setUserCliConfig, name='user.cli.configuration'),
+    path('configuration/user/cli/get', getUserCliConfig, name='user.cli.configuration.get'),
     path('configuration/user/cli/store', storeUserCliConfig, name='user.cli.configuration.store'),
 ]
