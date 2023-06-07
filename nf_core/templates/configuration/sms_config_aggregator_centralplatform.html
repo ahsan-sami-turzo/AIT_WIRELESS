@@ -48,6 +48,11 @@
                                 <input type="text" class="form-control" id="check_cli_url"/>
                             </div>
                             <div class="mb-3">
+                                <label class="form-label">Default Bill Msisdn</label>
+                                <input type="text" class="form-control" id="default_bill_msisdn"/>
+                            </div>
+
+                            <div class="mb-3">
                                 <button class="btn btn-success" id="btnStore">Save</button>
                             </div>
                         </div>
@@ -71,7 +76,8 @@
             check_balance_url:"",
             check_cli_url: "",
             delivery_status_url: "",
-            send_sms_url:""
+            send_sms_url:"",
+            default_bill_msisdn:""
         }
 
         var iptsp_config = {
@@ -80,7 +86,8 @@
             check_balance_url:"",
             check_cli_url: "",
             delivery_status_url: "",
-            send_sms_url:""
+            send_sms_url:"",
+            default_bill_msisdn:""
         }
 
         function emptyFormValues() {
@@ -89,6 +96,7 @@
             $("#delivery_status_url").val( "" )
             $("#check_balance_url").val( "" )
             $("#check_cli_url").val( "" )
+            $("#default_bill_msisdn").val( "" )
         }
 
         function setFormValues(obj) {
@@ -97,10 +105,21 @@
             $("#delivery_status_url").val(obj.delivery_status_url)
             $("#check_balance_url").val(obj.check_balance_url)
             $("#check_cli_url").val(obj.check_cli_url)
+            $("#default_bill_msisdn").val(obj.default_bill_msisdn)
+        }
+
+        function enableStoreButton() {
+            $('#btnStore').attr("disabled", false)
+            $('#btnStore').removeAttr("disabled")
         }
 
         function isUrlValid(url) {
             return /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(url);
+        }
+
+        function is_valid_phone(phone_number) {
+            let phone_pattern = /^(?=.{11}$)(01){1}[1-9]{1}(\d){8}/g
+            return phone_pattern.test( phone_number )
         }
 
         $( document ).ready(function() {
@@ -130,7 +149,7 @@
         // STORE DATA
         $("#btnStore").click(function(e) {
             e.preventDefault()
-            $(this).prop("disabled",true)
+            $(this).attr("disabled",true)
 
             let operator_type = $("#operator_type").find('option:selected').val()
             let api_key = $("#api_key").val()
@@ -138,6 +157,8 @@
             let delivery_status_url = $("#delivery_status_url").val()
             let check_balance_url = $("#check_balance_url").val()
             let check_cli_url = $("#check_cli_url").val()
+            let default_bill_msisdn = $("#default_bill_msisdn").val()
+
             let url = '{% url 'aggregator.centralplatform.configuration.store' %}'
 
             $("#api_key").attr('style', "border-radius: .25rem; border:#CED4DA 1px solid;")
@@ -145,35 +166,42 @@
             $("#delivery_status_url").attr('style', "border-radius: .25rem; border:#CED4DA 1px solid;")
             $("#check_balance_url").attr('style', "border-radius: .25rem; border:#CED4DA 1px solid;")
             $("#check_cli_url").attr('style', "border-radius: .25rem; border:#CED4DA 1px solid;")
+            $("#default_bill_msisdn").attr('style', "border-radius: .25rem; border:#CED4DA 1px solid;")
 
             if( !api_key ) {
                 toastr.warning("Please Input From API Key")
                 $("#api_key").attr('style', "border-radius: .5rem; border:#FF0000 1px solid;")
-                $(this).prop("disabled",false)
+                enableStoreButton()
                 return
             }
             if( !send_sms_url || !isUrlValid(send_sms_url) ) {
                 toastr.warning("Please Input Valid URL")
                 $("#send_sms_url").attr('style', "border-radius: 5px; border:#FF0000 1px solid;")
-                $(this).prop("disabled",false)
+                enableStoreButton()
                 return
             }
             if( !delivery_status_url || !isUrlValid(delivery_status_url) ) {
                 toastr.warning("Please Input Valid URL")
                 $("#delivery_status_url").attr('style', "border-radius: 5px; border:#FF0000 1px solid;")
-                $(this).prop("disabled",false)
+                enableStoreButton()
                 return
             }
             if( !check_balance_url || !isUrlValid(check_balance_url) ) {
                 toastr.warning("Please Input Valid URL")
                 $("#check_balance_url").attr('style', "border-radius: 5px; border:#FF0000 1px solid;")
-                $(this).prop("disabled",false)
+                enableStoreButton()
                 return
             }
             if( operator_type == 'MNO' && (!check_cli_url || !isUrlValid(check_cli_url)) ) {
                 toastr.warning("Please Input Valid URL")
                 $("#check_cli_url").attr('style', "border-radius: 5px; border:#FF0000 1px solid;")
-                $(this).prop("disabled",false)
+                enableStoreButton()
+                return
+            }
+            if( !default_bill_msisdn || ( operator_type == 'MNO' && !is_valid_phone(default_bill_msisdn) ) ) {
+                toastr.warning("Please Input Valid Phone")
+                $("#default_bill_msisdn").attr('style', "border-radius: 5px; border:#FF0000 1px solid;")
+                enableStoreButton()
                 return
             }
 
@@ -183,7 +211,8 @@
                 send_sms_url: send_sms_url,
                 delivery_status_url: delivery_status_url,
                 check_balance_url: check_balance_url,
-                check_cli_url : check_cli_url
+                check_cli_url : check_cli_url,
+                default_bill_msisdn: default_bill_msisdn
             }
 
             // AJAX START
@@ -198,11 +227,24 @@
                 },
                 error: function ( error ) {
                     toastr.error("Something Went Wrong")
-                    setTimeout(function() { $(this).prop("disabled",false) }, 500)
+                    setTimeout(function() {
+                        $('#btnStore').attr("disabled", false)
+                        $('#btnStore').removeAttr("disabled")
+                    }, 500)
                 }
             }); // AJAX END
         }); // STORE END
         //*/
+
+
+
+
+
+
+
+
+
+
 
 
 </script>

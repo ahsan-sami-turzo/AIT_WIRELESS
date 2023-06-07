@@ -1,3 +1,4 @@
+import re
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, HttpResponse
 from django.utils.safestring import SafeString
@@ -21,8 +22,19 @@ def is_valid_url(to_validate: str) -> bool:
         validator(to_validate)
         return True
     except ValidationError as exception:
-        print(exception)
         return False
+
+
+def is_valid_bd_mno(phone_number) -> bool:
+    pattern = '^01[3-9]\\d{8}$'
+    return re.search(pattern, phone_number)
+
+
+def get_operator_type_list() -> list:
+    return [
+        ("MNO", "MNO"),
+        ("IPTSP", "IPTSP"),
+    ]
 
 
 def get_BD_MNO_List() -> list:
@@ -51,7 +63,7 @@ def setAggregatorCentralPlatformConfig(request):
     config_list = list(
         SmsAggregatorCentralPlatformConfig
         .objects
-        .values('operator_type', 'api_key', 'send_sms_url', 'delivery_status_url', 'check_balance_url', 'check_cli_url')
+        .values('operator_type', 'api_key', 'send_sms_url', 'delivery_status_url', 'check_balance_url', 'check_cli_url', 'default_bill_msisdn')
     )
     config_len = len(config_list)
     context = {
@@ -73,10 +85,11 @@ def storeAggregatorCentralPlatformConfig(request):
     delivery_status_url = request.POST['delivery_status_url']
     check_balance_url = request.POST['check_balance_url']
     check_cli_url = request.POST['check_cli_url']
+    default_bill_msisdn = request.POST['default_bill_msisdn']
 
     error = {
         'code': 500,
-        'message': 'Invalid URL'
+        'message': 'Invalid Input'
     }
 
     if not is_valid_url(send_sms_url):
@@ -86,6 +99,8 @@ def storeAggregatorCentralPlatformConfig(request):
     if not is_valid_url(check_balance_url):
         return JsonResponse(error, safe=False)
     if operator_type == 'MNO' and not is_valid_url(check_cli_url):
+        return JsonResponse(error, safe=False)
+    if operator_type == 'MNO' and not is_valid_bd_mno(default_bill_msisdn):
         return JsonResponse(error, safe=False)
 
     try:
@@ -99,9 +114,10 @@ def storeAggregatorCentralPlatformConfig(request):
                 send_sms_url=send_sms_url,
                 delivery_status_url=delivery_status_url,
                 check_balance_url=check_balance_url,
-                check_cli_url=check_cli_url
+                check_cli_url=check_cli_url,
+                default_bill_msisdn=default_bill_msisdn
             )
-            .values('operator_type', 'api_key', 'send_sms_url', 'delivery_status_url', 'check_balance_url', 'check_cli_url')
+            .values('operator_type', 'api_key', 'send_sms_url', 'delivery_status_url', 'check_balance_url', 'check_cli_url', 'default_bill_msisdn')
         )
 
         config_len = len(config_list)
@@ -114,10 +130,12 @@ def storeAggregatorCentralPlatformConfig(request):
             config.delivery_status_url = delivery_status_url
             config.check_balance_url = check_balance_url
             config.check_cli_url = check_cli_url
+            config.default_bill_msisdn = default_bill_msisdn
             config.save()
 
             config = list(
-                SmsAggregatorCentralPlatformConfig.objects.values('operator_type', 'api_key', 'send_sms_url', 'delivery_status_url', 'check_balance_url', 'check_cli_url')
+                SmsAggregatorCentralPlatformConfig.objects
+                .values('operator_type', 'api_key', 'send_sms_url', 'delivery_status_url', 'check_balance_url', 'check_cli_url', 'default_bill_msisdn')
             )
             msg = {
                 'code': 200,

@@ -276,27 +276,20 @@ class SMSQueueHandler(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+# SMS CONFIG START
+# Date: 24-05-2023 - 06-06-2023
+
 class SmsAggregatorCentralPlatformConfig(models.Model):
     """
     SMS Configuration for AMBALAWIRELESS-INFOZILLION
     """
     api_key = models.CharField(max_length=200)
-    operator_type = models.CharField(
-        choices=[
-            ("MNO", "MNO"),
-            ("IPTSP", "IPTSP"),
-        ],
-        default="MNO",
-        max_length=5
-    )
-    send_sms_url = models.URLField(default="https://api.mnpspbd.com/a2p-sms/api/v1/send-sms")
-    # URL(IPTSP)= https://api.mnpspbd.com/a2p-sms-iptsp/api/v1/send-sms
+    operator_type = models.CharField(default="MNO", max_length=5)
+    default_bill_msisdn = models.CharField(blank=False, null=False, max_length=100)
+    send_sms_url = models.URLField(blank=False, null=False, default="https://api.mnpspbd.com/a2p-sms/api/v1/send-sms")
     delivery_status_url = models.URLField(default="https://api.mnpspbd.com/a2p-proxy-api/api/v1/check-delivery-report")
-    # URL(IPTSP)= https://api.mnpspbd.com/a2p-proxy-api-iptsp/api/v1/check-delivery-report
     check_balance_url = models.URLField(default="https://api.mnpspbd.com/a2p-proxy-api/api/v1/check-credit-balance")
-    # URL(IPTSP)= https://api.mnpspbd.com/a2p-proxy-api-iptsp/api/v1/check-credit-balance
     check_cli_url = models.URLField(default="https://api.mnpspbd.com/a2p-proxy-api/api/v1/check-cli")
-    # URL(IPTSP)= ""
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -364,14 +357,7 @@ class SmsOperatorList(models.Model):
     """
     MNO/IPTSP LIST
     """
-    operator_type = models.CharField(
-        choices=[
-            ("MNO", "MNO"),
-            ("IPTSP", "IPTSP"),
-        ],
-        default="MNO",
-        max_length=5
-    )
+    operator_type = models.CharField(default="MNO", max_length=5)
     operator_name = models.CharField(blank=False, null=False, max_length=100)
     operator_prefix = models.CharField(max_length=10)
 
