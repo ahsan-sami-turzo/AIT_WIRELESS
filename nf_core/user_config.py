@@ -378,3 +378,17 @@ def getUserOperatorConfig(request):
 @csrf_exempt
 def storeUserOperatorConfig(request):
     return 0
+
+
+"""
+OPERATOR CONFIG DECISION : START
+"""
+
+
+def getOperatorConfig(user_id, destination_number):
+    return True
+
+
+"""
+OPERATOR CONFIG DECISION : END
+"""
