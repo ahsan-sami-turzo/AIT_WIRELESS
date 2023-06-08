@@ -22,6 +22,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from Notifier.celery import app
 from nf_core.helper import *
 from .serializers import *
+from django.forms.models import model_to_dict
 
 
 @api_view(['POST'])
@@ -892,12 +893,16 @@ def myAccountInfo(request):
     })
 
 
-def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, req_sender_id, schedule_time=None):
+def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, req_sender_id, req_user_id, schedule_time=None):
+    """
+    Send SMS to Queue
+    """
     original_sms_body = unquote_plus(req_message_body)
     mobile_numbers, total, valid, invalid = validateMobileNumber(request, req_receiver, req_remove_duplicate)
     sms_length, sms_type, sms_count, sms_body = validateSMSBody(request, original_sms_body)
     sms_body = unquote_plus(sms_body)
     sender_id = req_sender_id
+    user_id = req_user_id
 
     if sms_length > 0 and sms_count > 0 and valid > 0:
         """
@@ -912,8 +917,27 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
         user_info_instance = UserInfo.objects.get(user=request.user)
         user_instance = user_info_instance.user
         user_config = UserConfig.objects.get(user=request.user)
-
         queue_name = user_config.queue.queue
+
+        # AGGREGATOR CONFIG
+        aggregator_operator_config = {}
+        for mobile_number in mobile_numbers:
+            destination_mobile = mobile_number
+            aggregator_operator_config = getAggregatorOperatorConfig(mobile_number)
+
+        # USER CLI
+        user_cli = list(SmsUserCliConfig.objects.filter(user=user_id).values('id', 'cli').order_by('-id')[:1])
+
+        if len(user_cli) > 0:
+            user_cli = user_cli[0]['cli']
+        else:
+            user_cli = aggregator_operator_config['default_cli']
+
+        return {
+            'user_cli': user_cli,
+            'destination_mobile': destination_mobile,
+            'aggregator_operator_config': aggregator_operator_config
+        }
 
         """
         Checking if the Sender ID belongs to this user
@@ -1049,18 +1073,21 @@ def sendSMS(request):
         """
         Formatting and validating mobile numbers and SMS body for both GET and POST request
         """
+
         if request.method == 'POST':
             req_message_body = request.data['message']
             req_receiver = request.data['receiver']
             req_remove_duplicate = request.data['remove_duplicate']
             req_sender_id = str(request.data['sender_id']).strip()
+            req_user_id = request.data['user_id']
         else:
             req_message_body = request.GET['message']
             req_receiver = request.GET['receiver']
             req_remove_duplicate = request.GET['remove_duplicate']
             req_sender_id = str(request.GET['sender_id']).strip()
+            req_user_id = request.GET['user_id']
 
-        response = sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, req_sender_id)
+        response = sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, req_sender_id, req_user_id)
         return Response(response)
     except Exception as e:
         writeErrorLog(request, e)
@@ -1090,6 +1117,7 @@ def scheduleSMS(request):
             req_sender_id = str(request.data['sender_id']).strip()
             schedule_time = str(request.data['schedule_time']).strip()
             schedule_time = datetime.strptime(schedule_time, "%Y-%m-%d %H:%M").astimezone()
+            req_user_id = request.data['user_id']
         else:
             req_message_body = request.GET['message']
             req_receiver = request.GET['receiver']
@@ -1097,9 +1125,9 @@ def scheduleSMS(request):
             req_sender_id = str(request.GET['sender_id']).strip()
             schedule_time = str(request.GET['schedule_time']).strip()
             schedule_time = datetime.strptime(schedule_time, "%Y-%m-%d %H:%M").astimezone()
+            req_user_id = request.GET['user_id']
 
-        response = sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, req_sender_id,
-                               schedule_time)
+        response = sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, req_sender_id, req_user_id, schedule_time)
         return Response(response)
     except Exception as e:
         writeErrorLog(request, e)

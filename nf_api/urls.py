@@ -45,7 +45,7 @@ urlpatterns = [
     path('v1/client/test', testAPI),
     path('v1/client/test/send-sms', sendTestSms),
     path('v1/client/test/get-delivery-status/<str:serverReference>', getDeliveryStatusAPI),
-
+    # {"sender_id":"01894784406","api_token":"Token 3757e2bc8333068ea439c248e1db2cb0be99ede8"}
     path('v1/client/sms/send-sms', sendSMS),
     path('v1/client/sms/schedule-sms', scheduleSMS),
     path('v1/client/sms/send-group-sms', sendGroupSMS),

@@ -3,7 +3,7 @@ import uuid
 import math
 from django.conf import settings
 from datetime import datetime
-from nf_core.models import BlockKeyword
+from nf_core.models import BlockKeyword, SmsAggregatorOperatorConfig
 
 
 def get_client_ip(request):
@@ -267,3 +267,26 @@ def getMobileOperatorNameAndRate(request, sms_rates, mobile_number, sms_category
         error = True
         writeErrorLog(request, e)
     return error, error_msg, operator_name, sms_rate
+
+
+def getAggregatorOperatorConfig(destination_mobile):
+    prefix = destination_mobile[2:5]
+    aggregator_operator_config = SmsAggregatorOperatorConfig.objects.prefetch_related('operator_type').filter(operator_prefix=prefix).order_by('-id')[:1]
+    for c in aggregator_operator_config:
+        config = {
+            'operator_type_id': c.operator_type.id,
+            'operator_type': c.operator_type.operator_type,
+            'operator_name': c.operator_name,
+            'operator_prefix': c.operator_prefix,
+            'username': c.username,
+            'password': c.password,
+            'bill_msisdn': c.bill_msisdn,
+            'default_cli': c.default_cli,
+            'default_bill_msisdn': c.operator_type.default_bill_msisdn,
+            'api_key': c.operator_type.api_key,
+            'send_sms_url': c.operator_type.send_sms_url,
+            'delivery_status_url': c.operator_type.delivery_status_url,
+            'check_balance_url': c.operator_type.check_balance_url,
+            'check_cli_url': c.operator_type.check_cli_url,
+        }
+        return config
