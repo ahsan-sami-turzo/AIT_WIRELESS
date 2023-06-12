@@ -4,6 +4,7 @@ import math
 from django.conf import settings
 from datetime import datetime
 from nf_core.models import BlockKeyword, SmsAggregatorOperatorConfig
+import hashlib, binascii
 
 
 def get_client_ip(request):
@@ -290,3 +291,33 @@ def getAggregatorOperatorConfig(destination_mobile):
             'check_cli_url': c.operator_type.check_cli_url,
         }
         return config
+
+
+def encrypt(key, msg):
+    encryped = []
+    for i, c in enumerate(msg):
+        key_c = ord(key[i % len(key)])
+        msg_c = ord(c)
+        encryped.append(chr((msg_c + key_c) % 127))
+    return ''.join(encryped)
+
+
+def decrypt(key, encryped):
+    msg = []
+    for i, c in enumerate(encryped):
+        key_c = ord(key[i % len(key)])
+        enc_c = ord(c)
+        msg.append(chr((enc_c - key_c) % 127))
+    return ''.join(msg)
+
+
+def hashString(msg):
+    return hashlib.md5(msg.encode()).hexdigest()
+
+
+def rhash(n):
+    return "%08x" % (n * 387420489 % 4000000000)
+
+
+def un_rhash(h):
+    return int(h, 16) * 3513180409 % 4000000000

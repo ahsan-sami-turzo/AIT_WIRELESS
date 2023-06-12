@@ -902,7 +902,7 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
     sms_length, sms_type, sms_count, sms_body = validateSMSBody(request, original_sms_body)
     sms_body = unquote_plus(sms_body)
     sender_id = req_sender_id
-    user_id = req_user_id
+    user_id = un_rhash(req_user_id)
 
     if sms_length > 0 and sms_count > 0 and valid > 0:
         """
@@ -936,7 +936,8 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
         return {
             'user_cli': user_cli,
             'destination_mobile': destination_mobile,
-            'aggregator_operator_config': aggregator_operator_config
+            'aggregator_operator_config': aggregator_operator_config,
+            'user_id': rhash(user_id)
         }
 
         """
