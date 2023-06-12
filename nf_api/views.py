@@ -961,6 +961,7 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
 
             # AGGREGATOR OPERATOR CONFIG
             aggregator_operator_config = getAggregatorOperatorConfig(num)
+            sender_id = aggregator_operator_config["bill_msisdn"]
 
             if error:
                 return {
@@ -983,7 +984,7 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                         sms_body=original_sms_body,
                         sms_body_encoded=sms_body,
                         sms_cost=sms_cost,
-                        sender_id=aggregator_operator_config["bill_msisdn"],
+                        sender_id=sender_id,
                         operator_name=operator_name,
                         sms_rate=round(sms_rate, 4),
                         sms_queue=queue_name
@@ -1008,7 +1009,7 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                         "aggregator_operator_config": aggregator_operator_config
                     }
 
-                    return param
+                    # return param
 
                     if schedule_time is None:
                         if not settings.DEBUG:
