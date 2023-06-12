@@ -893,7 +893,7 @@ def myAccountInfo(request):
     })
 
 
-def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, req_sender_id, req_user_id, schedule_time=None):
+def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, req_sender_id, schedule_time=None):
     """
     Send SMS to Queue
     """
@@ -902,7 +902,6 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
     sms_length, sms_type, sms_count, sms_body = validateSMSBody(request, original_sms_body)
     sms_body = unquote_plus(sms_body)
     sender_id = req_sender_id
-    user_id = un_rhash(req_user_id)
 
     if sms_length > 0 and sms_count > 0 and valid > 0:
         """
@@ -925,6 +924,10 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
             destination_mobile = mobile_number
             aggregator_operator_config = getAggregatorOperatorConfig(mobile_number)
 
+        # USER ID FROM HEADET AUTH TOKEN
+        token = request.headers["Authorization"].split()[1]
+        user_id = Token.objects.filter(key=token).values_list('user_id', flat=True)[0]
+
         # USER CLI
         user_cli = list(SmsUserCliConfig.objects.filter(user=user_id).values('id', 'cli').order_by('-id')[:1])
 
@@ -932,13 +935,6 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
             user_cli = user_cli[0]['cli']
         else:
             user_cli = aggregator_operator_config['default_cli']
-
-        return {
-            'user_cli': user_cli,
-            'destination_mobile': destination_mobile,
-            'aggregator_operator_config': aggregator_operator_config,
-            'user_id': rhash(user_id)
-        }
 
         """
         Checking if the Sender ID belongs to this user
@@ -961,8 +957,11 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
         old_balance = user_info_instance.credit
 
         for num in mobile_numbers:
-            error, error_msg, operator_name, sms_rate = getMobileOperatorNameAndRate(request, sms_rates, num,
-                                                                                     sms_category)
+            error, error_msg, operator_name, sms_rate = getMobileOperatorNameAndRate(request, sms_rates, num, sms_category)
+
+            # AGGREGATOR OPERATOR CONFIG
+            aggregator_operator_config = getAggregatorOperatorConfig(num)
+
             if error:
                 return {
                     'code': status.HTTP_400_BAD_REQUEST,
@@ -984,7 +983,7 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                         sms_body=original_sms_body,
                         sms_body_encoded=sms_body,
                         sms_cost=sms_cost,
-                        sender_id=sender_id,
+                        sender_id=aggregator_operator_config["bill_msisdn"],
                         operator_name=operator_name,
                         sms_rate=round(sms_rate, 4),
                         sms_queue=queue_name
@@ -1005,8 +1004,11 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                         "sms_type": sms_instance.sms_type,
                         "sms_body": sms_instance.sms_body,
                         "receiver": sms_instance.receiver,
-                        "operator_name": sms_instance.operator_name
+                        "operator_name": sms_instance.operator_name,
+                        "aggregator_operator_config": aggregator_operator_config
                     }
+
+                    return param
 
                     if schedule_time is None:
                         if not settings.DEBUG:
@@ -1067,6 +1069,15 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
 @authentication_classes([JWTAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def sendSMS(request):
+    # HASHED USER ID
+    # "AmbalaFoundation": "2e2f2292",
+    # "SMFintech": "7375d66d",
+    # "LifeTech": "8a8d67b6",
+
+    # return Response({
+    #     'headers': request.headers["Authorization"].split()[1]
+    # })
+
     """
     Send SMS API for Portal
     """
@@ -1074,21 +1085,20 @@ def sendSMS(request):
         """
         Formatting and validating mobile numbers and SMS body for both GET and POST request
         """
-
         if request.method == 'POST':
             req_message_body = request.data['message']
             req_receiver = request.data['receiver']
             req_remove_duplicate = request.data['remove_duplicate']
             req_sender_id = str(request.data['sender_id']).strip()
-            req_user_id = request.data['user_id']
+            # req_user_id = request.data['user_id']
         else:
             req_message_body = request.GET['message']
             req_receiver = request.GET['receiver']
             req_remove_duplicate = request.GET['remove_duplicate']
             req_sender_id = str(request.GET['sender_id']).strip()
-            req_user_id = request.GET['user_id']
+            # req_user_id = request.GET['user_id']
 
-        response = sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, req_sender_id, req_user_id)
+        response = sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, req_sender_id)
         return Response(response)
     except Exception as e:
         writeErrorLog(request, e)

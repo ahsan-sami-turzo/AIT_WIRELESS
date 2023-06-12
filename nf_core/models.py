@@ -191,8 +191,7 @@ class SMSHistory(PostgresPartitionedModel):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        indexes = [models.Index(fields=['user', 'receiver', 'sender_id', 'status', 'scheduled']),
-                   models.Index(fields=['created_at'])]
+        indexes = [models.Index(fields=['user', 'receiver', 'sender_id', 'status', 'scheduled']), models.Index(fields=['created_at'])]
 
     class PartitioningMeta:
         method = PostgresPartitioningMethod.RANGE
@@ -273,7 +272,6 @@ class SMSQueueHandler(models.Model):
     queue = models.CharField(max_length=200)
     operator_logo = models.CharField(max_length=200, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
 
 # SMS CONFIG START

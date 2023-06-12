@@ -270,6 +270,7 @@ def getMobileOperatorNameAndRate(request, sms_rates, mobile_number, sms_category
     return error, error_msg, operator_name, sms_rate
 
 
+# 12 June 2023
 def getAggregatorOperatorConfig(destination_mobile):
     prefix = destination_mobile[2:5]
     aggregator_operator_config = SmsAggregatorOperatorConfig.objects.prefetch_related('operator_type').filter(operator_prefix=prefix).order_by('-id')[:1]

@@ -73,13 +73,19 @@ def uploadContact(file_path, user_id, group_id):
         return str(e)
 
 
-def getDeliveryStatus(sender_id, receiver, shoot_id):
-    url = settings.INFOZILLION_URL + "/api/v1/check-delivery-report/"
+def getDeliveryStatus(aggregator_operator_config, receiver, shoot_id):
+    # AGGREGATOR OPERATOR CONFIG
+    url = aggregator_operator_config.get('delivery_status_url')
+    username = aggregator_operator_config.get('username')
+    password = aggregator_operator_config.get('password')
+    apiKey = aggregator_operator_config.get('api_key')
+    billMsisdn = aggregator_operator_config.get('bill_msisdn')
+
     payload = {
-        "username": settings.INFOZILLION_USERNAME,
-        "password": settings.INFOZILLION_PASSWORD,
-        "apiKey": settings.INFOZILLION_APIKEY,
-        "billMsisdn": sender_id,
+        "username": username,
+        "password": password,
+        "apiKey": apiKey,
+        "billMsisdn": billMsisdn,
         "msisdnList": [receiver],
         "serverReference": shoot_id
     }
@@ -92,6 +98,9 @@ def getDeliveryStatus(sender_id, receiver, shoot_id):
 @shared_task(bind=True, default_retry_delay=30, max_retries=3)
 def updateSMSStatus(self, *args, **kwargs):
     try:
+        # AGGREGATOR OPERATOR CONFIG
+        aggregator_operator_config = kwargs.get('aggregator_operator_config')
+
         json_payload = kwargs
         sms_instance = SMSHistory.objects.get(id=json_payload['sms_id'], user_id=json_payload['user_id'])
         sms_instance.shoot_id = json_payload['shoot_id']
@@ -103,7 +112,7 @@ def updateSMSStatus(self, *args, **kwargs):
 
         if sms_instance.shoot_id is not None:
             ########### Check SMS Delivery Status here ###########
-            response = getDeliveryStatus(sms_instance.sender_id, sms_instance.receiver, sms_instance.shoot_id)
+            response = getDeliveryStatus(aggregator_operator_config, sms_instance.receiver, sms_instance.shoot_id)
             serverResponseCode = int(response['serverResponseCode'])
             serverResponseMessage = response['serverResponseMessage']
 
@@ -166,22 +175,29 @@ def microSMSQueue(self, *args, **kwargs):
     update_queue = f"update{random.randint(1, 3)}"
     try:
         sms_body = kwargs.get('sms_body')
-        sms_type = kwargs.get('sms_type')
-        sender_id = kwargs.get('sender_id')
         receiver = kwargs.get('receiver')
 
+        # AGGREGATOR OPERATOR CONFIG
+        aggregator_operator_config = kwargs.get('aggregator_operator_config')
+        url = aggregator_operator_config.get('send_sms_url')
+        username = aggregator_operator_config.get('username')
+        password = aggregator_operator_config.get('password')
+        apiKey = aggregator_operator_config.get('api_key')
+        billMsisdn = aggregator_operator_config.get('bill_msisdn')
+        cli = aggregator_operator_config.get('default_cli')
+        sender_id = aggregator_operator_config.get('bill_msisdn')
+
         ########### Start call the operator API here ###########
-        url = settings.INFOZILLION_URL + "/api/v1/send-sms"
         payload = {
-            "username": settings.INFOZILLION_USERNAME,
-            "password": settings.INFOZILLION_PASSWORD,
-            "apiKey": settings.INFOZILLION_APIKEY,
-            "billMsisdn": sender_id,
-            "cli": settings.INFOZILLION_CLI,
+            "username": username,
+            "password": password,
+            "apiKey": apiKey,
+            "billMsisdn": billMsisdn,
+            "cli": cli,
             "msisdnList": [receiver],
+            "message": sms_body,
             "transactionType": "T",
-            "messageType": 3,
-            "message": sms_body
+            "messageType": 3
         }
         header = {"Content-Type": "application/json; charset=utf-8"}
         response = requests.post(url, data=json.dumps(payload), headers=header)
@@ -191,6 +207,7 @@ def microSMSQueue(self, *args, **kwargs):
         if int(response['serverResponseCode']) == 9000:
             shoot_id = response['serverTxnId']
             update_payload = {
+                "aggregator_operator_config": aggregator_operator_config,
                 "sms_id": kwargs.get('sms_id'),
                 "user_id": kwargs.get('user_id'),
                 "shoot_id": shoot_id,
@@ -204,6 +221,7 @@ def microSMSQueue(self, *args, **kwargs):
         else:
             error_msg = f"Error Code: {response['serverResponseCode']} | Message: {response['serverResponseMessage']}"
             update_payload = {
+                "aggregator_operator_config": aggregator_operator_config,
                 "sms_id": kwargs.get('sms_id'),
                 "user_id": kwargs.get('user_id'),
                 "shoot_id": None,
@@ -217,6 +235,7 @@ def microSMSQueue(self, *args, **kwargs):
     except Exception as e:
         try:
             update_payload = {
+                "aggregator_operator_config": aggregator_operator_config,
                 "sms_id": kwargs.get('sms_id'),
                 "user_id": kwargs.get('user_id'),
                 "shoot_id": None,
@@ -235,7 +254,6 @@ def microSMSQueue(self, *args, **kwargs):
 def sendSMSQueue(self, *args, **kwargs):
     try:
         micro_general_queue = f"micro{random.randint(1, 6)}"
-        # micro_general_queue = f"micro1"
         micro_priority_queue = f"micro{random.randint(7, 10)}"
         SMSQueueHandler.objects.create(
             sms_id=kwargs.get('sms_id'),
