@@ -961,7 +961,7 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
 
             # AGGREGATOR OPERATOR CONFIG
             aggregator_operator_config = getAggregatorOperatorConfig(num)
-            sender_id = aggregator_operator_config["bill_msisdn"]
+            sender_id = aggregator_operator_config.get('bill_msisdn')
 
             if error:
                 return {
@@ -1009,10 +1009,48 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
                         "aggregator_operator_config": aggregator_operator_config
                     }
 
-                    # return param
+                    # return settings.DEBUG
 
                     if schedule_time is None:
                         if not settings.DEBUG:
+                            """
+                            test start
+                            """
+                            sms_body = param.get('sms_body')
+                            receiver = param.get('receiver')
+                            aggregator_operator_config = param.get('aggregator_operator_config')
+                            url = aggregator_operator_config.get('send_sms_url')
+                            username = aggregator_operator_config.get('username')
+                            password = aggregator_operator_config.get('password')
+                            apiKey = aggregator_operator_config.get('api_key')
+                            billMsisdn = aggregator_operator_config.get('bill_msisdn')
+                            cli = aggregator_operator_config.get('default_cli')
+                            sender_id = aggregator_operator_config.get('bill_msisdn')
+                            payload = {
+                                "username": username,
+                                "password": password,
+                                "apiKey": apiKey,
+                                "billMsisdn": billMsisdn,
+                                "cli": cli,
+                                "msisdnList": [receiver],
+                                "message": sms_body,
+                                "transactionType": "T",
+                                "messageType": 3
+                            }
+                            header = {"Content-Type": "application/json; charset=utf-8"}
+                            response = requests.post(url, data=json.dumps(payload), headers=header)
+                            # response = response.json()
+                            return {
+                                "url": url,
+                                "data": json.dumps(payload),
+                                "headers": header,
+                                "response": response
+                            }
+
+                            """
+                            test end
+                            """
+                            ########### End call the operator API here ###########
                             app.send_task("nf_core.tasks.sendSMSQueue", queue=queue_name, kwargs=param)
                     else:
                         sms_instance.scheduled = True
@@ -1070,13 +1108,11 @@ def sendSMSCore(request, req_message_body, req_receiver, req_remove_duplicate, r
 @authentication_classes([JWTAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def sendSMS(request):
-    # HASHED USER ID
-    # "AmbalaFoundation": "2e2f2292",
-    # "SMFintech": "7375d66d",
-    # "LifeTech": "8a8d67b6",
-
+    # date_str = datetime.now().astimezone().strftime("%Y_%m_%d")
+    # log_file = os.path.join(settings.BASE_DIR, f'logs/error/error_log_{date_str}.log')
     # return Response({
-    #     'headers': request.headers["Authorization"].split()[1]
+    #     'headers': request.headers["Authorization"].split()[1],
+    #     'log_file': log_file
     # })
 
     """

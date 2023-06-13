@@ -268,7 +268,7 @@ def sendSMSQueue(self, *args, **kwargs):
             micro_queue = micro_general_queue
         else:
             micro_queue = micro_priority_queue
-
+        
         app.send_task("nf_core.tasks.microSMSQueue", queue=micro_queue, kwargs=kwargs)
         return f"Queued to Micro Successfully. Micro: {micro_queue} | SMS ID: {kwargs.get('sms_id')}"
     except Exception as e:
